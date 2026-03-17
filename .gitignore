@@ -36,6 +36,12 @@ pnpm-debug.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# prisma
-/prisma/migrations
+# prisma - keep migrations, ignore generated client cache
+prisma/migrations/
+
+# Sentry
+.sentryclirc
+
+
+
 
