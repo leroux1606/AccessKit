@@ -2,7 +2,16 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { ArrowLeft, ExternalLink, Globe, ShieldCheck, AlertTriangle } from "lucide-react";
+import {
+  ArrowLeft,
+  ExternalLink,
+  ShieldCheck,
+  AlertTriangle,
+  Clock,
+  Scan,
+  History,
+  Settings,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -40,106 +49,194 @@ export default async function WebsitePage({ params }: WebsitePageProps) {
 
   if (!website) notFound();
 
-  const openIssues = await db.violation.count({
-    where: { websiteId, status: "OPEN" },
-  });
+  const [openIssues, criticalIssues, recentViolations] = await Promise.all([
+    db.violation.count({ where: { websiteId, status: { in: ["OPEN", "IN_PROGRESS"] } } }),
+    db.violation.count({ where: { websiteId, status: { in: ["OPEN", "IN_PROGRESS"] }, severity: "CRITICAL" } }),
+    db.violation.findMany({
+      where: { websiteId, status: { in: ["OPEN", "IN_PROGRESS"] } },
+      orderBy: [{ severity: "asc" }, { firstDetectedAt: "desc" }],
+      take: 5,
+      include: { page: true },
+    }),
+  ]);
+
+  const subNavLinks = [
+    { href: `/websites/${websiteId}`, label: "Overview" },
+    { href: `/websites/${websiteId}/issues`, label: `Issues (${openIssues})` },
+    { href: `/websites/${websiteId}/scans`, label: "History" },
+    { href: `/websites/${websiteId}/settings`, label: "Settings" },
+  ];
 
   return (
     <div className="space-y-6">
-      {/* Back + header */}
-      <div className="space-y-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/websites">
-            <ArrowLeft className="h-4 w-4 mr-1" aria-hidden="true" />
-            Websites
-          </Link>
-        </Button>
+      {/* Back */}
+      <Button variant="ghost" size="sm" asChild>
+        <Link href="/websites">
+          <ArrowLeft className="h-4 w-4 mr-1" aria-hidden="true" />
+          Websites
+        </Link>
+      </Button>
 
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-2xl font-bold tracking-tight">{website.name}</h1>
-              {website.verified ? (
-                <Badge variant="success" className="gap-1">
-                  <ShieldCheck className="h-3 w-3" aria-hidden="true" />
-                  Verified
-                </Badge>
-              ) : (
-                <Badge variant="warning">Unverified</Badge>
-              )}
-            </div>
-            <a
-              href={website.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {website.url}
-              <ExternalLink className="h-3 w-3" aria-hidden="true" />
-            </a>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-2xl font-bold tracking-tight">{website.name}</h1>
+            {website.verified ? (
+              <Badge variant="success" className="gap-1">
+                <ShieldCheck className="h-3 w-3" aria-hidden="true" />
+                Verified
+              </Badge>
+            ) : (
+              <Badge variant="warning">Unverified</Badge>
+            )}
           </div>
+          <a
+            href={website.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {website.url}
+            <ExternalLink className="h-3 w-3" aria-hidden="true" />
+          </a>
+        </div>
 
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link href={`/websites/${websiteId}/settings`}>Settings</Link>
-            </Button>
-            <Button size="sm" disabled>
-              Scan now
-              <span className="sr-only"> (scanning engine coming in Phase 3)</span>
-            </Button>
-          </div>
+        <div className="flex gap-2 flex-shrink-0">
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/websites/${websiteId}/settings`}>
+              <Settings className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
+              Settings
+            </Link>
+          </Button>
+          <Button size="sm" disabled aria-label="Scan now (scanning engine coming in Phase 3)">
+            <Scan className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
+            Scan now
+          </Button>
         </div>
       </div>
 
+      {/* Sub-nav */}
+      <nav aria-label="Website sections" className="flex gap-1 border-b">
+        {subNavLinks.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b-2 border-transparent hover:border-muted-foreground -mb-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+          >
+            {link.label}
+          </Link>
+        ))}
+      </nav>
+
+      {/* Verification alert */}
+      {!website.verified && (
+        <div
+          role="alert"
+          className="flex items-center justify-between gap-4 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3"
+        >
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0" aria-hidden="true" />
+            <div>
+              <p className="font-medium text-sm">Verify website ownership</p>
+              <p className="text-xs text-muted-foreground">
+                Add a meta tag, DNS record, or file to enable scanning.
+              </p>
+            </div>
+          </div>
+          <Button size="sm" variant="outline" asChild>
+            <Link href={`/websites/${websiteId}/settings`}>Verify</Link>
+          </Button>
+        </div>
+      )}
+
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Accessibility score</CardDescription>
+            <CardDescription className="text-xs">Accessibility score</CardDescription>
             <CardTitle
-              className={`text-4xl ${scoreToColor(website.currentScore)}`}
+              className={`text-3xl font-bold ${scoreToColor(website.currentScore)}`}
               aria-label={
                 website.currentScore !== null
-                  ? `Accessibility score: ${website.currentScore} out of 100`
-                  : "No scans yet"
+                  ? `Score: ${website.currentScore} / 100`
+                  : "No score yet"
               }
             >
               {website.currentScore ?? "—"}
             </CardTitle>
           </CardHeader>
         </Card>
+
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Open issues</CardDescription>
-            <CardTitle className="text-4xl text-destructive">{openIssues}</CardTitle>
+            <CardDescription className="text-xs">Open issues</CardDescription>
+            <CardTitle className={`text-3xl font-bold ${openIssues > 0 ? "text-destructive" : "text-green-600"}`}>
+              {openIssues}
+            </CardTitle>
           </CardHeader>
         </Card>
+
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Last scanned</CardDescription>
-            <CardTitle className="text-lg">
+            <CardDescription className="text-xs">Critical issues</CardDescription>
+            <CardTitle className={`text-3xl font-bold ${criticalIssues > 0 ? "text-red-700" : "text-green-600"}`}>
+              {criticalIssues}
+            </CardTitle>
+          </CardHeader>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription className="text-xs">Last scan</CardDescription>
+            <CardTitle className="text-lg font-semibold">
               {website.lastScanAt ? formatRelativeTime(website.lastScanAt) : "Never"}
             </CardTitle>
           </CardHeader>
         </Card>
       </div>
 
-      {/* Verification prompt */}
-      {!website.verified && (
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardContent className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0" aria-hidden="true" />
+      {/* Top issues */}
+      {recentViolations.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-sm">Verify website ownership</p>
-                <p className="text-xs text-muted-foreground">
-                  Verify that you own this website to enable scanning and receive full results.
-                </p>
+                <CardTitle className="text-base">Top issues to fix</CardTitle>
+                <CardDescription>Highest severity open issues</CardDescription>
               </div>
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/websites/${websiteId}/issues`}>
+                  View all {openIssues}
+                </Link>
+              </Button>
             </div>
-            <Button size="sm" variant="outline" asChild>
-              <Link href={`/websites/${websiteId}/settings`}>Verify ownership</Link>
-            </Button>
+          </CardHeader>
+          <CardContent className="p-0">
+            <ul role="list" className="divide-y">
+              {recentViolations.map((v) => (
+                <li key={v.id} className="flex items-start gap-3 px-6 py-3">
+                  <Badge
+                    variant={
+                      v.severity === "CRITICAL"
+                        ? "critical"
+                        : v.severity === "SERIOUS"
+                        ? "serious"
+                        : v.severity === "MODERATE"
+                        ? "moderate"
+                        : "minor"
+                    }
+                    className="flex-shrink-0 mt-0.5"
+                  >
+                    {v.severity.toLowerCase()}
+                  </Badge>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{v.description}</p>
+                    <p className="text-xs text-muted-foreground font-mono truncate">{v.cssSelector}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </CardContent>
         </Card>
       )}
@@ -147,14 +244,24 @@ export default async function WebsitePage({ params }: WebsitePageProps) {
       {/* Scan history */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Recent scans</CardTitle>
-          <CardDescription>Click on a scan to see the full results</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base">Recent scans</CardTitle>
+              <CardDescription>Last {website.scans.length} scan{website.scans.length !== 1 ? "s" : ""}</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/websites/${websiteId}/scans`}>
+                <History className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
+                Full history
+              </Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {website.scans.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              <Globe className="h-8 w-8 mx-auto mb-3 opacity-40" aria-hidden="true" />
-              <p className="text-sm">No scans yet. Start your first scan to see results.</p>
+              <Clock className="h-8 w-8 mx-auto mb-2 opacity-40" aria-hidden="true" />
+              <p className="text-sm">No scans yet. Scanning engine coming in Phase 3.</p>
             </div>
           ) : (
             <ul role="list" className="divide-y -mx-6">
@@ -162,19 +269,16 @@ export default async function WebsitePage({ params }: WebsitePageProps) {
                 <li key={scan.id} className="flex items-center justify-between px-6 py-3">
                   <div>
                     <p className="text-sm font-medium">
-                      {scan.status === "COMPLETED"
-                        ? `Score: ${scan.score ?? "—"}`
-                        : scan.status}
+                      Score: <span className={scoreToColor(scan.score)}>{scan.score ?? "—"}</span>
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {formatDate(scan.createdAt)} · {scan.pagesScanned} page
-                      {scan.pagesScanned !== 1 ? "s" : ""} scanned
+                      {formatDate(scan.createdAt)} · {scan.pagesScanned} pages
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
                     {scan.totalViolations !== null && (
-                      <span className="text-sm text-muted-foreground">
-                        {scan.totalViolations} issue{scan.totalViolations !== 1 ? "s" : ""}
+                      <span className="text-sm text-destructive font-medium">
+                        {scan.totalViolations} issues
                       </span>
                     )}
                     <Badge

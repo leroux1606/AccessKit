@@ -5,7 +5,10 @@ import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Copy, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ShieldCheck, AlertTriangle } from "lucide-react";
+import { VerificationPanel } from "./verification-panel";
+import { WebsiteSettingsForm } from "./website-settings-form";
+import { DeleteWebsiteButton } from "./delete-website-button";
 
 export const metadata = { title: "Website Settings" };
 
@@ -20,6 +23,7 @@ export default async function WebsiteSettingsPage({ params }: SettingsPageProps)
 
   const membership = await db.membership.findFirst({
     where: { userId: session.user.id },
+    include: { organization: true },
   });
   if (!membership) redirect("/login");
 
@@ -29,9 +33,7 @@ export default async function WebsiteSettingsPage({ params }: SettingsPageProps)
 
   if (!website) notFound();
 
-  const metaTagValue = `<meta name="accesskit-verification" content="${website.verificationToken}">`;
-  const dnsValue = `accesskit-verify=${website.verificationToken}`;
-  const fileContent = website.verificationToken;
+  const canManage = ["OWNER", "ADMIN", "MEMBER"].includes(membership.role);
 
   return (
     <div className="space-y-6 max-w-xl">
@@ -39,7 +41,7 @@ export default async function WebsiteSettingsPage({ params }: SettingsPageProps)
         <Button variant="ghost" size="sm" asChild>
           <Link href={`/websites/${websiteId}`}>
             <ArrowLeft className="h-4 w-4 mr-1" aria-hidden="true" />
-            Back
+            Back to website
           </Link>
         </Button>
       </div>
@@ -60,80 +62,66 @@ export default async function WebsiteSettingsPage({ params }: SettingsPageProps)
                 Verified
               </Badge>
             ) : (
-              <Badge variant="warning">Not verified</Badge>
+              <Badge variant="warning">
+                <AlertTriangle className="h-3 w-3 mr-1" aria-hidden="true" />
+                Not verified
+              </Badge>
             )}
           </div>
           <CardDescription>
-            Verify that you own this website. Choose any one method below.
+            Verify that you own this website before scanning.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Method 1: Meta tag */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Method 1: HTML meta tag</h3>
-            <p className="text-xs text-muted-foreground">
-              Add this tag inside the <code>&lt;head&gt;</code> of your homepage.
-            </p>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 rounded bg-muted px-3 py-2 text-xs break-all font-mono">
-                {metaTagValue}
-              </code>
-            </div>
-          </div>
+        <CardContent>
+          <VerificationPanel
+            websiteId={website.id}
+            websiteUrl={website.url}
+            verificationToken={website.verificationToken}
+            isVerified={website.verified}
+            verificationMethod={website.verificationMethod}
+          />
+        </CardContent>
+      </Card>
 
-          {/* Method 2: DNS */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Method 2: DNS TXT record</h3>
-            <p className="text-xs text-muted-foreground">
-              Add a TXT record to your domain&apos;s DNS with this value.
-            </p>
-            <code className="block rounded bg-muted px-3 py-2 text-xs font-mono">
-              {dnsValue}
-            </code>
-          </div>
-
-          {/* Method 3: File */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Method 3: Verification file</h3>
-            <p className="text-xs text-muted-foreground">
-              Create a file at:{" "}
-              <code className="bg-muted px-1 rounded text-xs">
-                {website.url}/.well-known/accesskit-verify.txt
-              </code>{" "}
-              with this content:
-            </p>
-            <code className="block rounded bg-muted px-3 py-2 text-xs font-mono">
-              {fileContent}
-            </code>
-          </div>
-
-          {!website.verified && (
-            <Button className="w-full" disabled>
-              Verify ownership (automatic verification coming soon)
-            </Button>
-          )}
+      {/* Scan settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Scan configuration</CardTitle>
+          <CardDescription>
+            Configure how and when this website is scanned.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <WebsiteSettingsForm
+            websiteId={website.id}
+            currentName={website.name}
+            currentFrequency={website.scanFrequency}
+            currentStandards={website.standards as string[]}
+            orgPlan={membership.organization.plan}
+            canManage={canManage}
+          />
         </CardContent>
       </Card>
 
       {/* Danger zone */}
-      <Card className="border-destructive/30">
-        <CardHeader>
-          <CardTitle className="text-base text-destructive">Danger zone</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Delete website</p>
-              <p className="text-xs text-muted-foreground">
-                Permanently deletes this website and all its scans and violations.
-              </p>
+      {canManage && (
+        <Card className="border-destructive/30">
+          <CardHeader>
+            <CardTitle className="text-base text-destructive">Danger zone</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium">Delete website</p>
+                <p className="text-xs text-muted-foreground">
+                  Permanently deletes this website and all its scans, pages, and violations. This cannot be undone.
+                </p>
+              </div>
+              <DeleteWebsiteButton websiteId={website.id} websiteName={website.name} />
             </div>
-            <Button variant="destructive" size="sm" disabled>
-              Delete
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
