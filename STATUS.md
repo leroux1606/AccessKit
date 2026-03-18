@@ -21,32 +21,37 @@
 - Website issues page: filterable by severity and status
 - Scan history page: full table with all past scans
 
+### Phase 3: Scanning Engine ✅ (core done)
+- `src/inngest/client.ts` — Inngest v4 client
+- `src/inngest/scan-website.ts` — full job: crawl → axe-core → score → save → update website
+- `src/app/api/inngest/route.ts` — Inngest HTTP handler (GET/POST/PUT)
+- `src/scanner/crawler.ts` — sitemap.xml parser + Playwright link-crawl fallback + robots.txt
+- `src/scanner/axe-scanner.ts` — Playwright + @axe-core/playwright, full violation extraction
+- `src/scanner/standards-mapper.ts` — maps axe tags → WCAG/508/EN standards + criterion + level
+- `src/scanner/deduplicator.ts` — SHA-256 fingerprint (ruleId + selector + origin)
+- `src/scanner/scorer.ts` — weighted formula: critical×10, serious×5, moderate×2, minor×1
+- `src/scanner/fix-generator.ts` — 50+ template fixes for common axe-core rules
+- `src/scanner/index.ts` — orchestrator: runScan()
+- `src/scanner/screenshot.ts` — stub (activates when R2 env vars are set)
+- `src/scanner/pa11y-scanner.ts` — stub for future pa11y integration
+- `src/types/scan.ts` — ScanViolation, PageScanResult, ScanResult, ScanEventData types
+- `ScanButton` client component — triggers scan, shows spinner, redirects to progress page
+- `src/app/(dashboard)/websites/[websiteId]/actions.ts` — triggerScan() server action
+- `src/app/(dashboard)/websites/[websiteId]/scans/[scanId]/page.tsx` — scan detail: progress + full results
+- `src/app/(dashboard)/websites/[websiteId]/scans/[scanId]/scan-poller.tsx` — 3s polling client component
+- `src/app/api/internal/scan-status/route.ts` — scan status polling endpoint
+- "Scan now" button is live (requires website ownership verified)
+
+**Packages added:** `inngest@4`, `playwright`, `@axe-core/playwright`
+
 ---
 
 ## What still needs to be built
 
-### Phase 3: Scanning Engine 🔴 (most critical)
-**Start here.** This is the core product value.
-
-Files to create under `src/scanner/`:
-- `crawler.ts` — sitemap.xml parser + link crawler, respects robots.txt
-- `axe-scanner.ts` — Playwright + axe-core integration
-- `pa11y-scanner.ts` — pa11y secondary engine
-- `deduplicator.ts` — fingerprint = hash(ruleId + cssSelector + websiteUrl)
-- `scorer.ts` — weighted formula: critical×10, serious×5, moderate×2, minor×1
-- `screenshot.ts` — element-level screenshots → Cloudflare R2
-- `fix-generator.ts` — template fixes for 50+ common rules + Claude API for AI fixes
-- `standards-mapper.ts` — map axe/pa11y rules → WCAG/508/EN criteria
-
-Files to create under `src/inngest/`:
-- `client.ts`
-- `scan-website.ts` — main job: crawl → scan → score → save → notify
-
-Pages/API to add:
-- Activate the "Scan now" button (currently disabled) → triggers Inngest job
-- Real-time scan progress via polling or SSE
-- Scan result detail view (full violation list with HTML element, fix suggestion, screenshot)
-- `worker/` directory: Dockerfile + server.ts for the Playwright container
+### Phase 3 remaining (minor)
+- Screenshots: install `@aws-sdk/client-s3`, implement `screenshot.ts` R2 upload once R2 is configured
+- pa11y secondary engine: `npm install pa11y`, implement `pa11y-scanner.ts`, merge with axe results
+- Score trend chart on website overview (line chart, needs chart library e.g. recharts)
 
 ### Phase 4: Reporting & History
 - Score-over-time line chart on website detail
@@ -101,22 +106,47 @@ Pages/API to add:
 
 ## Where to resume next session
 
-**Start with Phase 3, Step 1: the Inngest client + scan job skeleton.**
+**Phase 3 remaining items OR Phase 4 (Reporting):**
 
-Exact entry point:
-1. Install: `npm install inngest`
-2. Create `src/inngest/client.ts`
-3. Create `src/inngest/scan-website.ts` (stub that saves QUEUED → RUNNING → COMPLETED)
-4. Create `src/app/api/inngest/route.ts` (Inngest handler)
-5. Wire the "Scan now" button to send an Inngest event
-6. Then build the actual scanner (`src/scanner/`) piece by piece
+Option A — Finish Phase 3 remaining:
+1. `score-trend-chart.tsx` — recharts line chart on website detail (install: `npm install recharts`)
+2. Screenshot upload — implement `screenshot.ts` using `@aws-sdk/client-s3` once R2 creds available
+3. pa11y — `npm install pa11y` + implement merge logic in `pa11y-scanner.ts`
 
-The scan worker (`worker/Dockerfile`) can be stubbed for now — the scanner can run
-in-process during development and be extracted to a container later.
+Option B — Start Phase 4 (more user-visible value):
+1. Score-over-time chart on `/websites/[websiteId]` using scan history
+2. `src/app/(dashboard)/websites/[websiteId]/reports/page.tsx` — report generation UI
+3. PDF report: `npm install @react-pdf/renderer`, create `src/components/reports/pdf-template.tsx`
+4. CSV export: generate from violations, stream as download
+5. Shareable links: create `ShareableReport` model or extend Scan with a `shareToken`
 
 ---
 
-## Environment variables needed before Phase 3 can run end-to-end
+## Running Phase 3 locally (dev)
+
+1. Set env vars in `.env.local`:
+   ```
+   DATABASE_URL=postgresql://...
+   AUTH_SECRET=...
+   INNGEST_EVENT_KEY=...   # get from app.inngest.com
+   INNGEST_SIGNING_KEY=... # get from app.inngest.com
+   ```
+
+2. Start Inngest dev server:
+   ```bash
+   npx inngest-cli@latest dev
+   ```
+
+3. Start Next.js dev server:
+   ```bash
+   npm run dev
+   ```
+
+4. Inngest dev server proxies job execution to `http://localhost:3000/api/inngest`
+
+---
+
+## Environment variables needed
 
 ```
 DATABASE_URL=          # PostgreSQL (Supabase or Neon recommended)

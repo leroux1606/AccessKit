@@ -8,12 +8,12 @@ import {
   ShieldCheck,
   AlertTriangle,
   Clock,
-  Scan,
   History,
   Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ScanButton } from "@/components/dashboard/scan-button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { formatDate, formatRelativeTime, scoreToColor } from "@/lib/utils";
 
@@ -109,10 +109,11 @@ export default async function WebsitePage({ params }: WebsitePageProps) {
               Settings
             </Link>
           </Button>
-          <Button size="sm" disabled aria-label="Scan now (scanning engine coming in Phase 3)">
-            <Scan className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
-            Scan now
-          </Button>
+          <ScanButton
+            websiteId={websiteId}
+            disabled={!website.verified}
+            disabledReason={!website.verified ? "Verify website ownership before scanning" : undefined}
+          />
         </div>
       </div>
 
