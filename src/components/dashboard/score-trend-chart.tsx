@@ -23,8 +23,17 @@ interface ScoreTrendChartProps {
 export function ScoreTrendChart({ data }: ScoreTrendChartProps) {
   if (data.length < 2) return null;
 
+  const validPoints = data.filter((d) => d.score !== null);
+  const summaryText =
+    validPoints.length > 0
+      ? `Score trend: ${validPoints.map((d) => `${d.date} ${d.score}/100`).join(", ")}.`
+      : "No score data available.";
+
   return (
-    <ResponsiveContainer width="100%" height={160} aria-label="Score trend over time">
+    <>
+      {/* Visually hidden table summary for screen reader users (WCAG 1.1.1) */}
+      <span className="sr-only" role="img" aria-label={summaryText} />
+      <ResponsiveContainer width="100%" height={160} aria-hidden="true">
       <LineChart data={data} margin={{ top: 5, right: 16, left: -20, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
         <XAxis
@@ -70,5 +79,6 @@ export function ScoreTrendChart({ data }: ScoreTrendChartProps) {
         />
       </LineChart>
     </ResponsiveContainer>
+    </>
   );
 }

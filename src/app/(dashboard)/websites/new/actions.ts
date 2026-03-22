@@ -42,7 +42,7 @@ export async function addWebsite(
 
   // Validate URL and block private/internal addresses (SSRF protection)
   try {
-    assertSafeFetchUrl(normalizedUrl);
+    await assertSafeFetchUrl(normalizedUrl);
   } catch (err) {
     if (err instanceof SsrfError) {
       return { error: "URLs pointing to private or internal addresses are not allowed." };

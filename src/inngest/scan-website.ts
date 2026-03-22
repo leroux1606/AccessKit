@@ -14,8 +14,14 @@ export const scanWebsiteJob = inngest.createFunction(
   async ({ event, step }) => {
     const { scanId, websiteId, websiteUrl, pageLimit, standards } = event.data as ScanEventData;
 
-    // Step 1: Mark scan as RUNNING
+    // Step 1: Mark scan as RUNNING (skip if already in a terminal state to
+    // avoid overwriting a COMPLETED or FAILED result on Inngest retry)
     await step.run("mark-running", async () => {
+      const current = await db.scan.findUnique({
+        where: { id: scanId },
+        select: { status: true },
+      });
+      if (current?.status === "COMPLETED" || current?.status === "FAILED") return;
       await db.scan.update({
         where: { id: scanId },
         data: { status: "RUNNING", startedAt: new Date() },
@@ -45,6 +51,23 @@ export const scanWebsiteJob = inngest.createFunction(
       const now = new Date();
 
       await db.$transaction(async (tx) => {
+        // Pre-fetch all known violation fingerprints for this website in one
+        // query to avoid an N+1 lookup inside the per-violation loop.
+        const existingViolations = await tx.violation.findMany({
+          where: { websiteId },
+          select: {
+            fingerprint: true,
+            firstDetectedAt: true,
+            status: true,
+            assignedToId: true,
+          },
+          orderBy: { firstDetectedAt: "asc" },
+          distinct: ["fingerprint"],
+        });
+        const existingByFingerprint = new Map(
+          existingViolations.map((ev) => [ev.fingerprint, ev]),
+        );
+
         for (const pageResult of result.pages) {
           const page = await tx.page.create({
             data: {
@@ -59,10 +82,7 @@ export const scanWebsiteJob = inngest.createFunction(
 
           for (const v of pageResult.violations) {
             // Carry forward firstDetectedAt and workflow state from previous scan
-            const existing = await tx.violation.findFirst({
-              where: { websiteId, fingerprint: v.fingerprint },
-              orderBy: { firstDetectedAt: "asc" },
-            });
+            const existing = existingByFingerprint.get(v.fingerprint);
 
             await tx.violation.create({
               data: {

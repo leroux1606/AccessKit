@@ -15,7 +15,7 @@ export async function GET() {
 
   const userId = session.user.id;
 
-  const [user, memberships, accounts] = await Promise.all([
+  const [user, memberships, accounts, comments] = await Promise.all([
     db.user.findUnique({
       where: { id: userId },
       select: {
@@ -60,6 +60,15 @@ export async function GET() {
         type: true,
       },
     }),
+    db.issueComment.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        violationFingerprint: true,
+      },
+    }),
   ]);
 
   const payload = {
@@ -71,6 +80,7 @@ export async function GET() {
       joinedAt: m.createdAt,
       organization: m.organization,
     })),
+    issueComments: comments,
   };
 
   return new NextResponse(JSON.stringify(payload, null, 2), {

@@ -75,7 +75,8 @@ export async function deleteWebsite(websiteId: string): Promise<{ error?: string
   });
 
   if (!membership) return { error: "Not authorized" };
-  if (!["OWNER", "ADMIN", "MEMBER"].includes(membership.role)) {
+  // Only OWNER and ADMIN may delete websites; MEMBER can only update settings
+  if (!["OWNER", "ADMIN"].includes(membership.role)) {
     return { error: "Not authorized" };
   }
 

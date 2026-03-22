@@ -230,6 +230,7 @@ model Website {
   clientPortals ClientPortal[]
 
   @@index([organizationId])
+  @@index([organizationId, url])
 }
 
 // ─── Scans ────────────────────────────────────────────────────────────────────
@@ -258,6 +259,7 @@ model Scan {
   violations Violation[]
 
   @@index([websiteId, createdAt])
+  @@index([websiteId, status])
 }
 
 // ─── Pages ────────────────────────────────────────────────────────────────────

@@ -18,11 +18,15 @@ export async function runScan(
     // 1. Discover pages to scan
     const urls = await crawlWebsite(websiteUrl, pageLimit, browser);
 
-    // 2. Scan each page with axe-core
+    // 2. Scan each page with axe-core (max 3 concurrent to balance speed vs. memory)
+    const CONCURRENCY = 3;
     const rawPages = [];
-    for (const url of urls) {
-      const pageResult = await scanPageWithAxe(browser, url, websiteOrigin, standards);
-      rawPages.push(pageResult);
+    for (let i = 0; i < urls.length; i += CONCURRENCY) {
+      const batch = urls.slice(i, i + CONCURRENCY);
+      const results = await Promise.all(
+        batch.map((url) => scanPageWithAxe(browser, url, websiteOrigin, standards)),
+      );
+      rawPages.push(...results);
     }
 
     // 3. Add per-page scores

@@ -2,7 +2,13 @@
  * SSRF (Server-Side Request Forgery) protection.
  * Blocks server-initiated requests to private/internal IP ranges, localhost,
  * and cloud metadata services before any outbound fetch is made.
+ *
+ * The async variant also resolves the hostname via DNS and checks each
+ * returned IP against the same blocklist, defeating DNS-rebinding attacks
+ * where a public-looking domain resolves to a private IP.
  */
+
+import * as dns from "dns";
 
 const PRIVATE_IP_PATTERNS = [
   /^127\./,                                        // 127.0.0.0/8 loopback
@@ -32,11 +38,26 @@ export class SsrfError extends Error {
   }
 }
 
+/** Returns true if the given IP string matches any private/internal range. */
+function isPrivateAddress(ip: string): boolean {
+  const lower = ip.toLowerCase();
+  if (BLOCKED_HOSTNAMES.has(lower)) return true;
+  for (const pattern of PRIVATE_IP_PATTERNS) {
+    if (pattern.test(lower)) return true;
+  }
+  return false;
+}
+
 /**
  * Validates that a URL is safe to fetch server-side.
+ *
+ * 1. Checks the hostname string against the blocklist (fast, synchronous).
+ * 2. Resolves the hostname via DNS and re-checks every returned IP to defend
+ *    against DNS-rebinding attacks.
+ *
  * Returns the parsed URL if safe; throws SsrfError otherwise.
  */
-export function assertSafeFetchUrl(rawUrl: string): URL {
+export async function assertSafeFetchUrl(rawUrl: string): Promise<URL> {
   let parsed: URL;
   try {
     parsed = new URL(rawUrl);
@@ -51,16 +72,23 @@ export function assertSafeFetchUrl(rawUrl: string): URL {
     throw new SsrfError(hostname);
   }
 
-  const lower = hostname.toLowerCase();
-
-  if (BLOCKED_HOSTNAMES.has(lower)) {
+  // Synchronous hostname check (catches literal IPs and known bad hostnames)
+  if (isPrivateAddress(hostname)) {
     throw new SsrfError(hostname);
   }
 
-  for (const pattern of PRIVATE_IP_PATTERNS) {
-    if (pattern.test(lower)) {
-      throw new SsrfError(hostname);
+  // DNS resolution check — defeats DNS rebinding
+  try {
+    const addresses = await dns.promises.lookup(hostname, { all: true });
+    for (const { address } of addresses) {
+      if (isPrivateAddress(address)) {
+        throw new SsrfError(hostname);
+      }
     }
+  } catch (err) {
+    if (err instanceof SsrfError) throw err;
+    // DNS resolution failure — fail safe
+    throw new SsrfError(hostname);
   }
 
   return parsed;

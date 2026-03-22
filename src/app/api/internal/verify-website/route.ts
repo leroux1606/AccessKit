@@ -4,6 +4,33 @@ import { db } from "@/lib/db";
 import { assertSafeFetchUrl } from "@/lib/ssrf-guard";
 import { checkRateLimit } from "@/lib/rate-limiter";
 
+const MAX_BODY_BYTES = 512 * 1024; // 512 KB — prevent memory exhaustion on large pages
+
+async function readBodyCapped(res: Response): Promise<string> {
+  const reader = res.body?.getReader();
+  if (!reader) return "";
+  const chunks: Uint8Array[] = [];
+  let received = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done || !value) break;
+      received += value.length;
+      if (received > MAX_BODY_BYTES) {
+        reader.cancel().catch(() => {});
+        break;
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const buf = new Uint8Array(chunks.reduce((n, c) => n + c.length, 0));
+  let pos = 0;
+  for (const c of chunks) { buf.set(c, pos); pos += c.length; }
+  return new TextDecoder().decode(buf);
+}
+
 /**
  * Verifies website ownership by checking all three methods:
  * 1. HTML meta tag in the page's <head>
@@ -60,9 +87,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, method: website.verificationMethod });
   }
 
-  // SSRF guard: confirm website URL is a public address
+  // SSRF guard: confirm website URL is a public address (includes DNS rebinding check)
   try {
-    assertSafeFetchUrl(website.url);
+    await assertSafeFetchUrl(website.url);
   } catch {
     return NextResponse.json(
       { error: "Website URL is not a valid public address." },
@@ -86,7 +113,7 @@ export async function POST(req: NextRequest) {
     clearTimeout(timeoutId);
 
     if (response.ok) {
-      const html = await response.text();
+      const html = await readBodyCapped(response);
       const metaPattern = new RegExp(
         `<meta[^>]+name=["']accesskit-verification["'][^>]+content=["']${token}["']`,
         "i"
@@ -141,7 +168,7 @@ export async function POST(req: NextRequest) {
       clearTimeout(timeoutId);
 
       if (response.ok) {
-        const content = (await response.text()).trim();
+        const content = (await readBodyCapped(response)).trim();
         if (content === token) {
           verifiedMethod = "FILE_UPLOAD";
         }

@@ -1,6 +1,21 @@
 import type { NextConfig } from "next";
 
 const securityHeaders = [
+  // Content Security Policy — restricts resource loading to trusted origins
+  {
+    key: "Content-Security-Policy",
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://app.posthog.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: https://*.googleusercontent.com https://avatars.githubusercontent.com",
+      "font-src 'self'",
+      "connect-src 'self' https://app.posthog.com https://us.i.posthog.com",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join("; "),
+  },
   // Prevent clickjacking
   { key: "X-Frame-Options", value: "DENY" },
   // Prevent MIME type sniffing

@@ -1,7 +1,8 @@
 import type { Browser } from "playwright";
+import { assertSafeFetchUrl } from "@/lib/ssrf-guard";
 
 // Extracts URLs from a sitemap.xml string using regex (avoids XML parser dep)
-function parseSitemapUrls(xml: string): string[] {
+export function parseSitemapUrls(xml: string): string[] {
   const urls: string[] = [];
   const locRegex = /<loc>\s*(https?:\/\/[^<]+)\s*<\/loc>/gi;
   let match: RegExpExecArray | null;
@@ -13,7 +14,7 @@ function parseSitemapUrls(xml: string): string[] {
 }
 
 // Check if robots.txt disallows crawling a path
-function isAllowedByRobots(robotsTxt: string, path: string): boolean {
+export function isAllowedByRobots(robotsTxt: string, path: string): boolean {
   const lines = robotsTxt.split("\n");
   let inUserAgentAll = false;
   for (const line of lines) {
@@ -30,7 +31,7 @@ function isAllowedByRobots(robotsTxt: string, path: string): boolean {
   return true;
 }
 
-function normalizeUrl(url: string, origin: string): string | null {
+export function normalizeUrl(url: string, origin: string): string | null {
   try {
     const parsed = new URL(url, origin);
     if (parsed.origin !== origin) return null; // external link
@@ -117,6 +118,10 @@ export async function crawlWebsite(
   pageLimit: number,
   browser: Browser,
 ): Promise<string[]> {
+  // Re-validate before any outbound fetch — guards against DNS rebinding
+  // between when the website was added and when the scan actually runs.
+  await assertSafeFetchUrl(websiteUrl);
+
   const origin = new URL(websiteUrl).origin;
 
   // Check robots.txt
