@@ -20,7 +20,7 @@ if (typeof setInterval !== "undefined") {
     for (const [key, w] of store) {
       if (now > w.resetAt) store.delete(key);
     }
-  }, 60_000);
+  }, 60_000).unref?.();
 }
 
 export interface RateLimitResult {
