@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { CheckCircle2, Copy, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import type { VerificationMethod } from "@prisma/client";
 
 interface VerificationPanelProps {

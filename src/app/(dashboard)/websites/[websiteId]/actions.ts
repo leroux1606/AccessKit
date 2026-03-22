@@ -30,6 +30,18 @@ export async function triggerScan(websiteId: string): Promise<void> {
     redirect(`/websites/${websiteId}/scans/${runningScan.id}`);
   }
 
+  // DB-backed rate limit: max 10 scans per website per 24 hours
+  // Works reliably in multi-instance / serverless environments
+  const scansToday = await db.scan.count({
+    where: {
+      websiteId,
+      createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+    },
+  });
+  if (scansToday >= 10) {
+    throw new Error("Daily scan limit reached (10 scans per website per day). Try again tomorrow.");
+  }
+
   const limits = getPlanLimits(membership.organization.plan);
   const pageLimit = isFinite(limits.pagesPerScan) ? limits.pagesPerScan : 1000;
 

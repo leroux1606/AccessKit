@@ -36,8 +36,10 @@
     "next": "15.2.2",
     "next-auth": "^5.0.0-beta.25",
     "playwright": "^1.58.2",
+    "posthog-js": "^1.363.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "recharts": "^3.8.0",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {

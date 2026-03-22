@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Standard } from "@prisma/client";
-import { slugify } from "@/lib/utils";
+import { assertSafeFetchUrl, SsrfError } from "@/lib/ssrf-guard";
 
 interface AddWebsiteInput {
   organizationId: string;
@@ -40,10 +40,13 @@ export async function addWebsite(
     normalizedUrl = `https://${normalizedUrl}`;
   }
 
-  // Basic URL validation
+  // Validate URL and block private/internal addresses (SSRF protection)
   try {
-    new URL(normalizedUrl);
-  } catch {
+    assertSafeFetchUrl(normalizedUrl);
+  } catch (err) {
+    if (err instanceof SsrfError) {
+      return { error: "URLs pointing to private or internal addresses are not allowed." };
+    }
     return { error: "Invalid URL. Please enter a valid website address." };
   }
 

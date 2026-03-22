@@ -23,8 +23,6 @@ export default async function IssuesPage() {
     include: { website: true, page: true },
   });
 
-  const severityOrder = ["CRITICAL", "SERIOUS", "MODERATE", "MINOR"];
-
   return (
     <div className="space-y-6">
       <div>

@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScanButton } from "@/components/dashboard/scan-button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { ScoreTrendChart } from "@/components/dashboard/score-trend-chart";
 import { formatDate, formatRelativeTime, scoreToColor } from "@/lib/utils";
 
 interface WebsitePageProps {
@@ -42,7 +43,7 @@ export default async function WebsitePage({ params }: WebsitePageProps) {
     include: {
       scans: {
         orderBy: { createdAt: "desc" },
-        take: 5,
+        take: 10,
       },
     },
   });
@@ -59,6 +60,16 @@ export default async function WebsitePage({ params }: WebsitePageProps) {
       include: { page: true },
     }),
   ]);
+
+  // Build score trend data for chart (oldest → newest, completed scans only)
+  const scoreTrendData = website.scans
+    .filter((s) => s.status === "COMPLETED" && s.score !== null)
+    .slice()
+    .reverse()
+    .map((s) => ({
+      date: formatDate(s.createdAt),
+      score: s.score as number,
+    }));
 
   const subNavLinks = [
     { href: `/websites/${websiteId}`, label: "Overview" },
@@ -197,6 +208,19 @@ export default async function WebsitePage({ params }: WebsitePageProps) {
         </Card>
       </div>
 
+      {/* Score trend chart */}
+      {scoreTrendData.length >= 2 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Score over time</CardTitle>
+            <CardDescription>Accessibility score across the last {scoreTrendData.length} completed scans</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ScoreTrendChart data={scoreTrendData} />
+          </CardContent>
+        </Card>
+      )}
+
       {/* Top issues */}
       {recentViolations.length > 0 && (
         <Card>
@@ -248,7 +272,11 @@ export default async function WebsitePage({ params }: WebsitePageProps) {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-base">Recent scans</CardTitle>
-              <CardDescription>Last {website.scans.length} scan{website.scans.length !== 1 ? "s" : ""}</CardDescription>
+              <CardDescription>
+                {website.scans.length > 0
+                  ? `Showing ${website.scans.slice(0, 5).length} most recent scan${website.scans.slice(0, 5).length !== 1 ? "s" : ""}`
+                  : "No scans yet"}
+              </CardDescription>
             </div>
             <Button variant="outline" size="sm" asChild>
               <Link href={`/websites/${websiteId}/scans`}>
@@ -262,11 +290,11 @@ export default async function WebsitePage({ params }: WebsitePageProps) {
           {website.scans.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Clock className="h-8 w-8 mx-auto mb-2 opacity-40" aria-hidden="true" />
-              <p className="text-sm">No scans yet. Scanning engine coming in Phase 3.</p>
+              <p className="text-sm">No scans yet. Run your first scan to see results.</p>
             </div>
           ) : (
             <ul role="list" className="divide-y -mx-6">
-              {website.scans.map((scan) => (
+              {website.scans.slice(0, 5).map((scan) => (
                 <li key={scan.id} className="flex items-center justify-between px-6 py-3">
                   <div>
                     <p className="text-sm font-medium">

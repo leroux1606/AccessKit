@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, AlertTriangle } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Download } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
 
 interface IssuesPageProps {
@@ -68,9 +68,19 @@ export default async function WebsiteIssuesPage({ params, searchParams }: Issues
         </Button>
       </div>
 
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Issues</h1>
-        <p className="text-sm text-muted-foreground">{violations.length} issue{violations.length !== 1 ? "s" : ""}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Issues</h1>
+          <p className="text-sm text-muted-foreground">{violations.length} issue{violations.length !== 1 ? "s" : ""}</p>
+        </div>
+        {violations.length > 0 && (
+          <Button variant="outline" size="sm" asChild>
+            <a href={`/api/websites/${websiteId}/violations/export`} download>
+              <Download className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
+              Export CSV
+            </a>
+          </Button>
+        )}
       </div>
 
       {/* Severity summary */}

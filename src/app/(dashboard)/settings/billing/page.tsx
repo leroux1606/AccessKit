@@ -4,10 +4,10 @@ import { db } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PLAN_NAMES, PLAN_PRICES, getPlanLimits } from "@/lib/plans";
+import { PLAN_NAMES, getPlanLimits } from "@/lib/plans";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 export const metadata = { title: "Billing" };
 

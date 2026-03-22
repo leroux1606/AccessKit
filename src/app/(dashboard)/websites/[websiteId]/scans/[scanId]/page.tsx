@@ -69,7 +69,6 @@ export default async function ScanDetailPage({ params }: ScanDetailPageProps) {
       {isActive && (
         <ScanPoller
           scanId={scanId}
-          websiteId={websiteId}
           initialStatus={scan.status}
         />
       )}

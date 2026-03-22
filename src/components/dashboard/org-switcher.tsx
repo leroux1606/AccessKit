@@ -15,7 +15,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PLAN_NAMES } from "@/lib/plans";
-import { cn } from "@/lib/utils";
 
 interface Organization {
   id: string;

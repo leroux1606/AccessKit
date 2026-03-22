@@ -7,11 +7,10 @@ import { Card, CardContent } from "@/components/ui/card";
 
 interface ScanPollerProps {
   scanId: string;
-  websiteId: string;
   initialStatus: string;
 }
 
-export function ScanPoller({ scanId, websiteId, initialStatus }: ScanPollerProps) {
+export function ScanPoller({ scanId, initialStatus }: ScanPollerProps) {
   const router = useRouter();
 
   const poll = useCallback(async () => {
@@ -32,6 +31,8 @@ export function ScanPoller({ scanId, websiteId, initialStatus }: ScanPollerProps
     return () => clearInterval(interval);
   }, [poll]);
 
+  // WCAG 4.1.3 Status Messages (Level AA): live region so screen readers
+  // announce status updates without requiring focus to move here.
   return (
     <Card>
       <CardContent className="py-12 text-center">
@@ -39,14 +40,16 @@ export function ScanPoller({ scanId, websiteId, initialStatus }: ScanPollerProps
           className="h-10 w-10 mx-auto mb-3 animate-spin text-primary"
           aria-hidden="true"
         />
-        <p className="font-medium">
-          {initialStatus === "QUEUED" ? "Scan queued…" : "Scanning in progress…"}
-        </p>
-        <p className="text-sm text-muted-foreground mt-1">
-          {initialStatus === "QUEUED"
-            ? "Your scan is queued and will start shortly."
-            : "Crawling pages and running accessibility checks. This may take a few minutes."}
-        </p>
+        <div role="status" aria-live="polite" aria-atomic="true">
+          <p className="font-medium">
+            {initialStatus === "QUEUED" ? "Scan queued…" : "Scanning in progress…"}
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {initialStatus === "QUEUED"
+              ? "Your scan is queued and will start shortly."
+              : "Crawling pages and running accessibility checks. This may take a few minutes."}
+          </p>
+        </div>
         <p className="text-xs text-muted-foreground mt-3">
           This page refreshes automatically every 3 seconds.
         </p>

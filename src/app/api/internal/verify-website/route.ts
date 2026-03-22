@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { assertSafeFetchUrl } from "@/lib/ssrf-guard";
+import { checkRateLimit } from "@/lib/rate-limiter";
 
 /**
  * Verifies website ownership by checking all three methods:
@@ -14,6 +16,20 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Rate limit: 5 verification attempts per user per hour
+  const { allowed, resetInMs } = checkRateLimit(
+    `verify:${session.user.id}`,
+    5,
+    60 * 60 * 1000,
+  );
+  if (!allowed) {
+    const retryAfterSec = Math.ceil(resetInMs / 1000);
+    return NextResponse.json(
+      { error: `Too many verification attempts. Try again in ${Math.ceil(resetInMs / 60000)} minute(s).` },
+      { status: 429, headers: { "Retry-After": String(retryAfterSec) } },
+    );
   }
 
   const body = await req.json() as { websiteId: string };
@@ -42,6 +58,16 @@ export async function POST(req: NextRequest) {
 
   if (website.verified) {
     return NextResponse.json({ success: true, method: website.verificationMethod });
+  }
+
+  // SSRF guard: confirm website URL is a public address
+  try {
+    assertSafeFetchUrl(website.url);
+  } catch {
+    return NextResponse.json(
+      { error: "Website URL is not a valid public address." },
+      { status: 422 }
+    );
   }
 
   const token = website.verificationToken;

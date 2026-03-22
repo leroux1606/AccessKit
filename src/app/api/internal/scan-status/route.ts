@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { checkRateLimit } from "@/lib/rate-limiter";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Rate limit: 120 polls per user per minute (3s interval × 40 concurrent scans max)
+  const { allowed } = checkRateLimit(`poll:${session.user.id}`, 120, 60_000);
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
   const scanId = request.nextUrl.searchParams.get("scanId");
