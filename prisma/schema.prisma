@@ -109,6 +109,12 @@ enum VerificationMethod {
   FILE_UPLOAD
 }
 
+enum ReportType {
+  SCAN_REPORT
+  COMPLIANCE_SUMMARY
+  EXECUTIVE_SUMMARY
+}
+
 // ─── Organizations ────────────────────────────────────────────────────────────
 
 model Organization {
@@ -128,6 +134,7 @@ model Organization {
   websites     Website[]
   apiKeys      ApiKey[]
   clientPortals ClientPortal[]
+  reports      Report[]
 }
 
 // ─── Users & Memberships ──────────────────────────────────────────────────────
@@ -146,6 +153,7 @@ model User {
   sessions    Session[]
   violations  Violation[] @relation("AssignedViolations")
   comments    IssueComment[]
+  reports     Report[]
 }
 
 model Membership {
@@ -228,6 +236,7 @@ model Website {
   violations   Violation[]
   scanSchedule ScanSchedule?
   clientPortals ClientPortal[]
+  reports      Report[]
 
   @@index([organizationId])
   @@index([organizationId, url])
@@ -257,6 +266,7 @@ model Scan {
   website    Website     @relation(fields: [websiteId], references: [id], onDelete: Cascade)
   pages      Page[]
   violations Violation[]
+  reports    Report[]
 
   @@index([websiteId, createdAt])
   @@index([websiteId, status])
@@ -407,4 +417,33 @@ model ClientPortal {
   website      Website      @relation(fields: [websiteId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
+}
+
+// ─── Reports ──────────────────────────────────────────────────────────────────
+
+model Report {
+  id             String       @id @default(cuid())
+  organizationId String
+  websiteId      String
+  scanId         String
+  createdById    String
+
+  title          String
+  type           ReportType   @default(SCAN_REPORT)
+
+  // Sharing
+  shareToken     String?      @unique
+  isPublic       Boolean      @default(false)
+  passwordHash   String?
+  expiresAt      DateTime?
+
+  createdAt      DateTime     @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  website      Website      @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  scan         Scan         @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation(fields: [createdById], references: [id])
+
+  @@index([organizationId])
+  @@index([shareToken])
 }

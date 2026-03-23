@@ -4,27 +4,16 @@
 
 ---
 
-## Phase A: UI Overhaul (partially done — crashed session)
+## Phase A: UI Overhaul — COMPLETE (commit `582c56e`)
 
-The previous session started this work. Tailwind v4 migration, dark navy/purple theme, and landing page redesign are in uncommitted changes. Needs to be finished and committed.
-
-**Already done (uncommitted):**
-- [x] Tailwind v3 → v4 migration (globals.css, postcss.config.mjs, tailwind.config.ts)
-- [x] Dark navy/purple color scheme (CSS variables)
-- [x] Landing page redesign (gradient backgrounds, glow effects, gradient text)
-- [x] Login page polish (dark theme, styled OAuth buttons)
-- [x] Sidebar styling updates
-- [x] Cookie consent banner restyle
-- [x] Dashboard header/layout adjustments
-
-**Still needs doing:**
-- [ ] Verify the app actually builds and renders correctly with these changes
-- [ ] Fix any broken components or visual issues from the Tailwind v4 migration
-- [ ] Polish dashboard inner pages (website list, website detail, scan results, issues)
-- [ ] Polish feature cards / pricing section on landing page
-- [ ] Ensure all shadcn/ui components work with the new dark theme
-- [ ] Responsive design check (mobile/tablet)
-- [ ] Commit all UI overhaul work
+- [x] Tailwind v3 → v4 migration
+- [x] Dark navy/purple color scheme
+- [x] Landing page, login page, sidebar, header, cookie consent restyled
+- [x] All 17 dashboard pages updated for dark theme
+- [x] Badge, card, scoreToColor utility fixed for dark backgrounds
+- [x] All upsell/warning/success cards use dark-safe colors
+- [x] Responsive: sidebar hidden on mobile with logo bar fallback
+- [x] Build verified passing
 
 ---
 
