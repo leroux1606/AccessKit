@@ -30,9 +30,9 @@ export default async function ClientsPage() {
       </div>
 
       {!isAgencyOrHigher ? (
-        <Card className="border-orange-200 bg-orange-50">
+        <Card className="border-orange-500/20 bg-orange-500/10">
           <CardContent className="p-6 text-center space-y-3">
-            <ExternalLink className="h-8 w-8 mx-auto text-orange-500" aria-hidden="true" />
+            <ExternalLink className="h-8 w-8 mx-auto text-orange-400" aria-hidden="true" />
             <p className="font-medium">Client portals require Agency plan or higher</p>
             <p className="text-sm text-muted-foreground">
               Create branded portals for each client with their own login, score tracking, and issue visibility.

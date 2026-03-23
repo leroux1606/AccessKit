@@ -92,10 +92,10 @@ export default async function ScanDetailPage({ params }: ScanDetailPageProps) {
 
             {(
               [
-                { label: "Critical", value: scan.criticalCount, color: "text-red-700" },
-                { label: "Serious", value: scan.seriousCount, color: "text-orange-600" },
-                { label: "Moderate", value: scan.moderateCount, color: "text-yellow-600" },
-                { label: "Minor", value: scan.minorCount, color: "text-blue-600" },
+                { label: "Critical", value: scan.criticalCount, color: "text-red-400" },
+                { label: "Serious", value: scan.seriousCount, color: "text-orange-400" },
+                { label: "Moderate", value: scan.moderateCount, color: "text-yellow-400" },
+                { label: "Minor", value: scan.minorCount, color: "text-blue-400" },
               ] as const
             ).map(({ label, value, color }) => (
               <Card key={label}>
@@ -190,7 +190,7 @@ export default async function ScanDetailPage({ params }: ScanDetailPageProps) {
                                 <summary className="text-xs font-medium text-primary cursor-pointer hover:underline">
                                   How to fix
                                 </summary>
-                                <pre className="mt-2 text-xs bg-green-50 border border-green-200 rounded-md p-3 overflow-x-auto whitespace-pre-wrap">
+                                <pre className="mt-2 text-xs bg-green-500/10 border border-green-500/20 text-green-300 rounded-md p-3 overflow-x-auto whitespace-pre-wrap">
                                   {v.fixSuggestion}
                                 </pre>
                               </details>
@@ -216,7 +216,7 @@ export default async function ScanDetailPage({ params }: ScanDetailPageProps) {
           ) : (
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">
-                <CheckCircle className="h-10 w-10 mx-auto mb-3 text-green-500" aria-hidden="true" />
+                <CheckCircle className="h-10 w-10 mx-auto mb-3 text-green-400" aria-hidden="true" />
                 <p className="font-medium">No issues found</p>
                 <p className="text-sm">All pages passed the accessibility checks.</p>
               </CardContent>

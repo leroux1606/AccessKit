@@ -45,9 +45,9 @@ export default async function ApiKeysPage() {
       </div>
 
       {!isAgencyOrHigher ? (
-        <Card className="border-orange-200 bg-orange-50">
+        <Card className="border-orange-500/20 bg-orange-500/10">
           <CardContent className="p-6 text-center space-y-3">
-            <Key className="h-8 w-8 mx-auto text-orange-500" aria-hidden="true" />
+            <Key className="h-8 w-8 mx-auto text-orange-400" aria-hidden="true" />
             <p className="font-medium">API access requires Agency plan or higher</p>
             <p className="text-sm text-muted-foreground">
               Upgrade to use the REST API, CI/CD integrations, and webhooks.

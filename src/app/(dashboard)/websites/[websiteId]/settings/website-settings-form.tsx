@@ -196,7 +196,7 @@ export function WebsiteSettingsForm({
           )}
         </Button>
         {saved && (
-          <p role="status" className="text-sm text-green-600" aria-live="polite">
+          <p role="status" className="text-sm text-green-400" aria-live="polite">
             Settings saved.
           </p>
         )}

@@ -145,10 +145,10 @@ export default async function WebsitePage({ params }: WebsitePageProps) {
       {!website.verified && (
         <div
           role="alert"
-          className="flex items-center justify-between gap-4 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3"
+          className="flex items-center justify-between gap-4 rounded-lg border border-yellow-500/20 bg-yellow-500/10 px-4 py-3"
         >
           <div className="flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0" aria-hidden="true" />
+            <AlertTriangle className="h-5 w-5 text-yellow-400 flex-shrink-0" aria-hidden="true" />
             <div>
               <p className="font-medium text-sm">Verify website ownership</p>
               <p className="text-xs text-muted-foreground">
@@ -183,7 +183,7 @@ export default async function WebsitePage({ params }: WebsitePageProps) {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription className="text-xs">Open issues</CardDescription>
-            <CardTitle className={`text-3xl font-bold ${openIssues > 0 ? "text-destructive" : "text-green-600"}`}>
+            <CardTitle className={`text-3xl font-bold ${openIssues > 0 ? "text-destructive" : "text-green-400"}`}>
               {openIssues}
             </CardTitle>
           </CardHeader>
@@ -192,7 +192,7 @@ export default async function WebsitePage({ params }: WebsitePageProps) {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription className="text-xs">Critical issues</CardDescription>
-            <CardTitle className={`text-3xl font-bold ${criticalIssues > 0 ? "text-red-700" : "text-green-600"}`}>
+            <CardTitle className={`text-3xl font-bold ${criticalIssues > 0 ? "text-red-400" : "text-green-400"}`}>
               {criticalIssues}
             </CardTitle>
           </CardHeader>

@@ -71,7 +71,7 @@ export default async function SettingsPage() {
           const Icon = section.icon;
           return (
             <Link key={section.href} href={section.href}>
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <Card className="hover:border-border transition-colors cursor-pointer">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">

@@ -46,7 +46,7 @@ export default async function NewWebsitePage() {
       </div>
 
       {atLimit ? (
-        <div className="rounded-lg border border-orange-200 bg-orange-50 p-6 text-center space-y-3">
+        <div className="rounded-lg border border-orange-500/20 bg-orange-500/10 p-6 text-center space-y-3">
           <p className="font-medium">Website limit reached</p>
           <p className="text-sm text-muted-foreground">
             Your {org.plan} plan allows up to {limits.websites} website

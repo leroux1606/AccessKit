@@ -74,9 +74,9 @@ export function VerificationPanel({
   if (isVerified) {
     return (
       <div className="flex items-center gap-3 py-2">
-        <CheckCircle2 className="h-5 w-5 text-green-600" aria-hidden="true" />
+        <CheckCircle2 className="h-5 w-5 text-green-400" aria-hidden="true" />
         <div>
-          <p className="text-sm font-medium text-green-800">Ownership verified</p>
+          <p className="text-sm font-medium text-green-400">Ownership verified</p>
           {verificationMethod && (
             <p className="text-xs text-muted-foreground capitalize">
               via {verificationMethod.replace("_", " ").toLowerCase()}
@@ -188,7 +188,7 @@ export function VerificationPanel({
             aria-live="polite"
             className={`rounded-md p-3 text-sm ${
               result.success
-                ? "bg-green-50 border border-green-200 text-green-800"
+                ? "bg-green-500/10 border border-green-500/20 text-green-400"
                 : "bg-destructive/10 border border-destructive/20 text-destructive"
             }`}
           >
@@ -220,7 +220,7 @@ function CodeBlock({
         className="absolute top-2 right-2 p-1.5 rounded-md opacity-0 group-hover:opacity-100 focus-visible:opacity-100 bg-background border hover:bg-muted transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {copied ? (
-          <CheckCircle2 className="h-3.5 w-3.5 text-green-600" aria-hidden="true" />
+          <CheckCircle2 className="h-3.5 w-3.5 text-green-400" aria-hidden="true" />
         ) : (
           <Copy className="h-3.5 w-3.5" aria-hidden="true" />
         )}

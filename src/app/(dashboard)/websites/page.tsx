@@ -59,7 +59,7 @@ export default async function WebsitesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {websites.map((website) => (
-            <Card key={website.id} className="hover:shadow-md transition-shadow">
+            <Card key={website.id} className="hover:border-border transition-colors">
               <CardContent className="p-5">
                 <div className="flex items-start justify-between mb-3">
                   <div className="min-w-0 flex-1">

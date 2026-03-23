@@ -37,17 +37,18 @@ export function SignInForm({ callbackUrl }: SignInFormProps) {
 
   if (magicLinkSent) {
     return (
-      <div className="rounded-lg border bg-card p-6 text-center space-y-3">
-        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-          <Mail className="h-6 w-6 text-primary" />
+      <div className="rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm p-6 text-center space-y-3 shadow-xl shadow-black/20">
+        <div className="w-12 h-12 bg-gradient-to-br from-[hsl(262,83%,68%)] to-[hsl(280,80%,55%)] rounded-full flex items-center justify-center mx-auto shadow-lg shadow-[hsl(262,83%,68%)]/20">
+          <Mail className="h-6 w-6 text-white" />
         </div>
-        <h2 className="font-semibold">Check your email</h2>
+        <h2 className="font-semibold text-foreground">Check your email</h2>
         <p className="text-sm text-muted-foreground">
-          We sent a magic link to <strong>{email}</strong>. Click the link to sign in.
+          We sent a magic link to <strong className="text-foreground">{email}</strong>. Click the link to sign in.
         </p>
         <Button
           variant="ghost"
           size="sm"
+          className="text-muted-foreground hover:text-foreground"
           onClick={() => {
             setMagicLinkSent(false);
             setEmail("");
@@ -60,11 +61,11 @@ export function SignInForm({ callbackUrl }: SignInFormProps) {
   }
 
   return (
-    <div className="rounded-lg border bg-card p-6 space-y-4">
-      <div className="space-y-2">
+    <div className="rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm p-6 space-y-4 shadow-xl shadow-black/20">
+      <div className="space-y-2.5">
         <Button
           variant="outline"
-          className="w-full"
+          className="w-full border-border/50 bg-secondary/50 hover:bg-secondary hover:border-border text-foreground h-10"
           onClick={() => handleOAuth("google")}
           disabled={isLoading !== null}
           aria-label="Sign in with Google"
@@ -78,7 +79,7 @@ export function SignInForm({ callbackUrl }: SignInFormProps) {
 
         <Button
           variant="outline"
-          className="w-full"
+          className="w-full border-border/50 bg-secondary/50 hover:bg-secondary hover:border-border text-foreground h-10"
           onClick={() => handleOAuth("github")}
           disabled={isLoading !== null}
           aria-label="Sign in with GitHub"
@@ -93,7 +94,7 @@ export function SignInForm({ callbackUrl }: SignInFormProps) {
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
+          <span className="w-full border-t border-border/50" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-card px-2 text-muted-foreground">or</span>
@@ -102,7 +103,7 @@ export function SignInForm({ callbackUrl }: SignInFormProps) {
 
       <form onSubmit={handleEmailSignIn} className="space-y-3">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-1.5">
+          <label htmlFor="email" className="block text-sm font-medium mb-1.5 text-foreground">
             Email address
           </label>
           <input
@@ -113,10 +114,11 @@ export function SignInForm({ callbackUrl }: SignInFormProps) {
             placeholder="you@example.com"
             required
             className={cn(
-              "w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
+              "w-full rounded-lg border border-border/50 bg-secondary/50 px-3 py-2 text-sm text-foreground",
               "placeholder:text-muted-foreground",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-              "disabled:cursor-not-allowed disabled:opacity-50"
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+              "disabled:cursor-not-allowed disabled:opacity-50",
+              "transition-colors hover:border-border"
             )}
             disabled={isLoading !== null}
             autoComplete="email"
@@ -124,7 +126,7 @@ export function SignInForm({ callbackUrl }: SignInFormProps) {
         </div>
         <Button
           type="submit"
-          className="w-full"
+          className="w-full bg-gradient-to-r from-[hsl(262,83%,68%)] to-[hsl(280,80%,55%)] hover:from-[hsl(262,83%,60%)] hover:to-[hsl(280,80%,48%)] text-white shadow-lg shadow-[hsl(262,83%,68%)]/20 border-0 h-10"
           disabled={isLoading !== null || !email}
           aria-label="Send magic link to email"
         >

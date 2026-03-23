@@ -50,8 +50,8 @@ export function scoreToGrade(score: number | null | undefined): string {
 
 export function scoreToColor(score: number | null | undefined): string {
   if (score === null || score === undefined) return "text-muted-foreground";
-  if (score >= 90) return "text-green-600";
-  if (score >= 70) return "text-yellow-600";
-  if (score >= 50) return "text-orange-600";
-  return "text-red-600";
+  if (score >= 90) return "text-green-400";
+  if (score >= 70) return "text-yellow-400";
+  if (score >= 50) return "text-orange-400";
+  return "text-red-400";
 }

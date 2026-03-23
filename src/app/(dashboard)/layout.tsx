@@ -22,7 +22,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-background">
       {/* Skip-to-content link — WCAG 2.4.1 Bypass Blocks (Level A) */}
       <a
         href="#main-content"
@@ -32,10 +32,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </a>
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
+        {/* Mobile logo bar — shown only when sidebar is hidden */}
+        <div className="flex md:hidden items-center gap-2.5 px-4 py-3 border-b border-border/50 bg-sidebar">
+          <div className="w-7 h-7 bg-gradient-to-br from-[hsl(262,83%,68%)] to-[hsl(280,80%,55%)] rounded-md flex items-center justify-center shadow-md shadow-[hsl(262,83%,68%)]/15">
+            <span className="text-white font-bold text-xs">AK</span>
+          </div>
+          <span className="font-bold text-foreground">AccessKit</span>
+        </div>
         <Header />
         <main
           id="main-content"
-          className="flex-1 p-6"
+          className="flex-1 p-4 md:p-6"
           tabIndex={-1}
         >
           {children}

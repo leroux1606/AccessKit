@@ -26,7 +26,7 @@ export async function Header({ title }: HeaderProps) {
   }));
 
   return (
-    <header className="flex items-center justify-between border-b px-6 py-3 bg-background">
+    <header className="flex items-center justify-between border-b border-border/50 px-6 py-3 bg-background/80 backdrop-blur-sm">
       <div className="flex items-center gap-4">
         <OrgSwitcher organizations={organizations} />
         {title && (

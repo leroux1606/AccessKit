@@ -39,9 +39,9 @@ export default async function WhiteLabelPage() {
       </div>
 
       {!isAgencyOrHigher ? (
-        <Card className="border-orange-200 bg-orange-50">
+        <Card className="border-orange-500/20 bg-orange-500/10">
           <CardContent className="p-6 text-center space-y-3">
-            <Palette className="h-8 w-8 mx-auto text-orange-500" aria-hidden="true" />
+            <Palette className="h-8 w-8 mx-auto text-orange-400" aria-hidden="true" />
             <p className="font-medium">White label requires Agency plan or higher</p>
             <p className="text-sm text-muted-foreground">
               Upgrade to remove AccessKit branding from reports and client portals.
