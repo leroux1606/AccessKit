@@ -3,10 +3,9 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, AlertTriangle, Download } from "lucide-react";
-import { formatRelativeTime } from "@/lib/utils";
+import { IssuesTable } from "@/components/issues/issues-table";
 
 interface IssuesPageProps {
   params: Promise<{ websiteId: string }>;
@@ -43,7 +42,7 @@ export default async function WebsiteIssuesPage({ params, searchParams }: Issues
       ...(severityFilter ? { severity: severityFilter as never } : {}),
     },
     orderBy: [{ severity: "asc" }, { createdAt: "desc" }],
-    take: 100,
+    take: 200,
     include: { page: true, assignedTo: true },
   });
 
@@ -56,6 +55,29 @@ export default async function WebsiteIssuesPage({ params, searchParams }: Issues
   const countBySeverity = Object.fromEntries(
     severityCounts.map((s) => [s.severity, s._count.id])
   );
+
+  // Fetch team members for bulk assign
+  const memberships = await db.membership.findMany({
+    where: { organizationId: membership.organizationId },
+    include: { user: { select: { id: true, name: true, email: true } } },
+  });
+  const teamMembers = memberships.map((m) => m.user);
+
+  // Serialize dates for client component
+  const serializedViolations = violations.map((v) => ({
+    id: v.id,
+    description: v.description,
+    ruleId: v.ruleId,
+    severity: v.severity,
+    status: v.status,
+    category: v.category,
+    firstDetectedAt: v.firstDetectedAt.toISOString(),
+    assignedTo: v.assignedTo
+      ? { id: v.assignedTo.id, name: v.assignedTo.name, email: v.assignedTo.email, image: v.assignedTo.image }
+      : null,
+    page: { url: v.page.url },
+    websiteId: v.websiteId,
+  }));
 
   return (
     <div className="space-y-6">
@@ -129,69 +151,11 @@ export default async function WebsiteIssuesPage({ params, searchParams }: Issues
           </p>
         </div>
       ) : (
-        <Card>
-          <CardContent className="p-0">
-            <table className="w-full text-sm" aria-label="Website accessibility issues">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th scope="col" className="text-left px-6 py-3 font-medium">Issue</th>
-                  <th scope="col" className="text-left px-6 py-3 font-medium">Severity</th>
-                  <th scope="col" className="text-left px-6 py-3 font-medium hidden md:table-cell">Category</th>
-                  <th scope="col" className="text-left px-6 py-3 font-medium hidden lg:table-cell">Page</th>
-                  <th scope="col" className="text-left px-6 py-3 font-medium hidden md:table-cell">Detected</th>
-                  <th scope="col" className="text-left px-6 py-3 font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {violations.map((v) => (
-                  <tr key={v.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-6 py-3 max-w-xs">
-                      <p className="font-medium truncate">{v.description}</p>
-                      <p className="text-xs text-muted-foreground font-mono">{v.ruleId}</p>
-                    </td>
-                    <td className="px-6 py-3">
-                      <Badge
-                        variant={
-                          v.severity === "CRITICAL"
-                            ? "critical"
-                            : v.severity === "SERIOUS"
-                            ? "serious"
-                            : v.severity === "MODERATE"
-                            ? "moderate"
-                            : "minor"
-                        }
-                      >
-                        {v.severity.toLowerCase()}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-3 hidden md:table-cell text-xs text-muted-foreground capitalize">
-                      {v.category.toLowerCase().replace("_", " ")}
-                    </td>
-                    <td className="px-6 py-3 hidden lg:table-cell">
-                      <a
-                        href={v.page.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-muted-foreground hover:underline max-w-[160px] truncate block"
-                        title={v.page.url}
-                      >
-                        {new URL(v.page.url).pathname || "/"}
-                      </a>
-                    </td>
-                    <td className="px-6 py-3 hidden md:table-cell text-xs text-muted-foreground">
-                      {formatRelativeTime(v.firstDetectedAt)}
-                    </td>
-                    <td className="px-6 py-3">
-                      <Badge variant={v.status === "OPEN" ? "destructive" : "warning"}>
-                        {v.status.toLowerCase().replace("_", " ")}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+        <IssuesTable
+          violations={serializedViolations}
+          teamMembers={teamMembers}
+          websiteId={websiteId}
+        />
       )}
     </div>
   );

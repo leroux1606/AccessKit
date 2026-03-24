@@ -17,25 +17,28 @@
 
 ---
 
-## Phase B: Reporting & History (was Phase 4 in STATUS.md)
+## Phase B: Reporting & History — COMPLETE (commit `28ddd38`)
 
-- [ ] Score-over-time line chart on website detail page (recharts — already partially done)
-- [ ] PDF report generation (`@react-pdf/renderer`)
-- [ ] CSV export of violations (endpoint exists, needs download button — may already be done)
-- [ ] Shareable report links (unique URL, optional password, expiry)
-- [ ] VPAT-style compliance evidence package (Agency plan)
+- [x] Score-over-time line chart (was already done in Phase 3)
+- [x] CSV export endpoint + download button (was already done)
+- [x] PDF report generation (@react-pdf/renderer) — professional template with score, severity breakdown, page-by-page issues
+- [x] Reports dashboard: generate from any completed scan, list/download/share/delete
+- [x] Shareable report links (/report/[shareToken]) with expiry support
+- [x] Report model in Prisma schema
+- [ ] VPAT-style compliance evidence package (deferred — Agency plan feature)
 
 ---
 
-## Phase C: Issue Workflow & Collaboration (was Phase 5)
+## Phase C: Issue Workflow & Collaboration — COMPLETE
 
-- [ ] Issue detail page with HTML diff (current vs fixed)
-- [ ] Comments thread on issues
-- [ ] Assign issues to team members + email notification
-- [ ] Status workflow: Open → In Progress → Fixed → Verified
-- [ ] Bulk actions on issue list (assign, change status, mark won't fix)
-- [ ] Priority matrix view (severity × effort grid)
-- [ ] Cross-website issue dashboard
+- [x] Issue detail page with HTML diff (current vs fixed)
+- [x] Comments thread on issues
+- [x] Assign issues to team members
+- [x] Status workflow: Open → In Progress → Fixed → Verified → Won't Fix → False Positive
+- [x] Bulk actions on issue list (assign, change status, mark won't fix)
+- [x] Priority matrix view (severity × effort grid)
+- [x] Cross-website issue dashboard with status tabs, severity/website filters
+- [ ] Email notification on assignment (deferred — requires Resend transactional setup)
 
 ---
 
