@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Palette } from "lucide-react";
+import { WhiteLabelForm } from "@/components/dashboard/white-label-form";
 
 export const metadata = { title: "White Label" };
 
@@ -19,6 +20,13 @@ export default async function WhiteLabelPage() {
   if (!membership) redirect("/login");
 
   const isAgencyOrHigher = ["AGENCY", "ENTERPRISE"].includes(membership.organization.plan);
+
+  const whiteLabel = (membership.organization.whiteLabel as {
+    companyName?: string | null;
+    primaryColor?: string | null;
+    secondaryColor?: string | null;
+    logoUrl?: string | null;
+  }) ?? {};
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -52,11 +60,14 @@ export default async function WhiteLabelPage() {
           </CardContent>
         </Card>
       ) : (
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">White label configuration coming soon.</p>
-          </CardContent>
-        </Card>
+        <WhiteLabelForm
+          initial={{
+            companyName: whiteLabel.companyName ?? null,
+            primaryColor: whiteLabel.primaryColor ?? null,
+            secondaryColor: whiteLabel.secondaryColor ?? null,
+            logoUrl: whiteLabel.logoUrl ?? null,
+          }}
+        />
       )}
     </div>
   );
