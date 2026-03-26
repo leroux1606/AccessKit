@@ -4,10 +4,12 @@ import { db } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PLAN_NAMES, getPlanLimits } from "@/lib/plans";
+import { PLAN_NAMES, PLAN_PRICES, getPlanLimits } from "@/lib/plans";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { BillingActions } from "@/components/dashboard/billing-actions";
+import { PlanType } from "@prisma/client";
 
 export const metadata = { title: "Billing" };
 
@@ -23,10 +25,18 @@ export default async function BillingPage() {
 
   const org = membership.organization;
   const limits = getPlanLimits(org.plan);
+  const isAdmin = membership.role === "OWNER" || membership.role === "ADMIN";
+  const prices = PLAN_PRICES[org.plan as keyof typeof PLAN_PRICES];
+
   const [websiteCount, teamCount] = await Promise.all([
     db.website.count({ where: { organizationId: org.id, isCompetitor: false } }),
     db.membership.count({ where: { organizationId: org.id } }),
   ]);
+
+  // Determine available upgrades
+  const planOrder: PlanType[] = ["STARTER", "PROFESSIONAL", "AGENCY"];
+  const currentIndex = planOrder.indexOf(org.plan as PlanType);
+  const upgradePlans = planOrder.slice(currentIndex + 1);
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -41,8 +51,37 @@ export default async function BillingPage() {
 
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Billing & Plan</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Manage your subscription</p>
+        <p className="text-sm text-muted-foreground mt-0.5">Manage your subscription and usage</p>
       </div>
+
+      {/* Status alerts */}
+      {org.subscriptionStatus === "PAST_DUE" && (
+        <Card className="border-red-500/30 bg-red-500/10">
+          <CardContent className="flex items-start gap-3 p-4">
+            <AlertTriangle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-red-400">Payment failed</p>
+              <p className="text-sm text-muted-foreground">
+                Your last payment failed. Please update your payment method to keep your account active.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {org.subscriptionStatus === "CANCELED" && (
+        <Card className="border-amber-500/30 bg-amber-500/10">
+          <CardContent className="flex items-start gap-3 p-4">
+            <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-amber-400">Subscription canceled</p>
+              <p className="text-sm text-muted-foreground">
+                Your subscription has been canceled. You&apos;re on the free Starter plan with limited features.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Current plan */}
       <Card>
@@ -53,12 +92,19 @@ export default async function BillingPage() {
               <CardDescription>
                 {org.subscriptionStatus === "TRIALING"
                   ? `Free trial — ends ${org.trialEndsAt ? formatDate(org.trialEndsAt) : "soon"}`
-                  : org.subscriptionStatus}
+                  : org.subscriptionStatus === "ACTIVE"
+                    ? `$${prices?.monthly ?? 0}/month`
+                    : org.subscriptionStatus}
               </CardDescription>
             </div>
-            <Badge variant="default" className="text-sm px-3 py-1">
-              {PLAN_NAMES[org.plan]}
-            </Badge>
+            <div className="flex items-center gap-2">
+              {org.subscriptionStatus === "ACTIVE" && (
+                <CheckCircle2 className="h-4 w-4 text-green-400" />
+              )}
+              <Badge variant="default" className="text-sm px-3 py-1">
+                {PLAN_NAMES[org.plan]}
+              </Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -92,20 +138,25 @@ export default async function BillingPage() {
         </CardContent>
       </Card>
 
-      {/* Upgrade prompt */}
-      {org.plan !== "ENTERPRISE" && (
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="p-6">
-            <h3 className="font-semibold mb-1">Upgrade your plan</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Get more websites, daily scans, white-label reports, client portals, and AI-powered fixes.
-            </p>
-            <Button disabled>
-              Manage billing (Stripe integration coming soon)
-            </Button>
-          </CardContent>
-        </Card>
+      {/* Billing actions (client component for Stripe redirects) */}
+      {isAdmin && (
+        <BillingActions
+          currentPlan={org.plan}
+          subscriptionStatus={org.subscriptionStatus}
+          hasStripeCustomer={!!org.stripeCustomerId}
+          upgradePlans={upgradePlans}
+        />
       )}
+
+      {/* Plan comparison link */}
+      <div className="text-center">
+        <Link
+          href="/pricing"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
+        >
+          View full plan comparison
+        </Link>
+      </div>
     </div>
   );
 }
