@@ -42,37 +42,47 @@
 
 ---
 
-## Phase D: Billing & Subscriptions (was Phase 6)
+## Phase D: Billing & Subscriptions — COMPLETE
 
-- [ ] Stripe products/prices for all 4 plans
-- [ ] Stripe Checkout for new subscriptions
-- [ ] Stripe Customer Portal for self-service
-- [ ] Webhook handler: `src/app/api/webhooks/stripe/route.ts`
-- [ ] Pricing page (public, with annual/monthly toggle)
-- [ ] Billing settings page with live usage stats
-- [ ] One-time audit purchase ($499)
-- [ ] Free trial email reminders (day 7, 12, 14) via Resend
-
----
-
-## Phase E: Agency Features (was Phase 7)
-
-- [ ] White-label config: logo upload, brand colors, company name preview
-- [ ] White-label PDF reports (zero AccessKit branding)
-- [ ] Client portal: `/portal/[slug]` public route, optional password
-- [ ] REST API: `/api/v1/` endpoints with API key auth + rate limiting
-- [ ] OpenAPI/Swagger documentation
-- [ ] Webhooks: configurable URLs, event types, retry logic, delivery log
-- [ ] GitHub Action: `accesskit/scan-action@v1`
+- [x] Stripe client library (`src/lib/stripe.ts`) — checkout sessions, portal sessions, customer management
+- [x] Stripe Checkout for new subscriptions (monthly + annual per plan)
+- [x] Stripe Customer Portal for self-service (`/api/billing/portal`)
+- [x] Webhook handler: `src/app/api/webhooks/stripe/route.ts` — handles checkout.completed, subscription CRUD, invoice paid/failed
+- [x] Pricing page (`/pricing`) — public, annual/monthly toggle, plan comparison, FAQ, one-time audit
+- [x] Billing settings page with live usage stats + upgrade/portal buttons (`BillingActions` component)
+- [x] One-time audit purchase ($499) via Stripe Checkout
+- [x] Free trial email reminders (day 7, 2, 0) via Inngest cron + Resend
+- [x] `.env.example` updated with monthly/annual price IDs per plan
+- [x] Pricing link added to landing page nav
+- [ ] Stripe products/prices need to be created in Stripe Dashboard (env vars configured, code ready)
 
 ---
 
-## Phase F: Automation & Monitoring (was Phase 8)
+## Phase E: Agency Features (was Phase 7) — COMPLETE
 
-- [ ] Inngest cron jobs for scheduled scans (partially done — `scheduled-scans.ts` exists)
-- [ ] Email notifications: scan complete, new critical, score drop, weekly digest
-- [ ] In-app notification bell with unread count
-- [ ] Competitive benchmarking: scan competitor URLs, side-by-side chart
+- [x] White-label config: logo upload (URL-based), brand colors, company name + live preview
+- [x] White-label PDF reports (zero AccessKit branding when Agency+)
+- [x] Client portal: `/portal/[slug]` public route, optional password protection
+- [x] REST API: `/api/v1/` endpoints with API key auth + rate limiting (100/min Agency, 1000/min Enterprise)
+- [x] OpenAPI/Swagger documentation (`/api/v1/openapi.json`)
+- [x] API key management UI (create, revoke, usage tracking, max 10 per org)
+- [ ] Webhooks: configurable URLs, event types, retry logic, delivery log (deferred to Phase F)
+- [ ] GitHub Action: `accesskit/scan-action@v1` (deferred — API is functional for CI/CD integration via curl)
+
+---
+
+## Phase F: Automation & Monitoring — COMPLETE
+
+- [x] Inngest cron jobs for scheduled scans (`scheduled-scans.ts` with `ScanSchedule` model)
+- [x] Email notifications: scan complete, new critical issues, score drop (5+ points), weekly digest (Monday 10 AM UTC)
+- [x] In-app notification bell with unread count badge, mark read / mark all read
+- [x] Notification + NotificationPreference models in Prisma schema
+- [x] Notification preferences settings page (per-type email/in-app toggles)
+- [x] `scan/completed` event fired from scan-website job, triggers 3 notification handlers
+- [x] Competitive benchmarking: add/remove/scan competitor websites, side-by-side bar chart, summary cards
+- [x] Benchmarking gated to Agency+ plans (with plan limit enforcement)
+- [x] All Inngest functions registered in serve handler
+- [x] Build verified passing
 
 ---
 

@@ -27,6 +27,9 @@ export default async function HomePage() {
         </div>
         <div className="flex items-center gap-3">
           <Button variant="ghost" className="text-muted-foreground hover:text-foreground" asChild>
+            <Link href="/pricing">Pricing</Link>
+          </Button>
+          <Button variant="ghost" className="text-muted-foreground hover:text-foreground" asChild>
             <Link href="/login">Sign in</Link>
           </Button>
           <Button className="bg-gradient-to-r from-[hsl(262,83%,68%)] to-[hsl(280,80%,55%)] hover:from-[hsl(262,83%,60%)] hover:to-[hsl(280,80%,48%)] text-white shadow-lg shadow-[hsl(262,83%,68%)]/25 border-0" asChild>

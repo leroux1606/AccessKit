@@ -140,6 +140,14 @@ export const scanWebsiteJob = inngest.createFunction(
       });
     });
 
+    // Step 4: Fire scan/completed event for notification handlers
+    await step.run("fire-completed-event", async () => {
+      await inngest.send({
+        name: "scan/completed",
+        data: { scanId },
+      });
+    });
+
     return {
       scanId,
       score: result.score,

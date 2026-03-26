@@ -11,6 +11,7 @@ import {
   ExternalLink,
   Plug,
   BarChart3,
+  Swords,
   BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -46,6 +47,11 @@ const navItems = [
     label: "Client Portals",
     href: "/clients",
     icon: ExternalLink,
+  },
+  {
+    label: "Benchmarking",
+    href: "/benchmarking",
+    icon: Swords,
   },
   {
     label: "Integrations",

@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { OrgSwitcher } from "./org-switcher";
 import { UserMenu } from "./user-menu";
+import { NotificationBell } from "./notification-bell";
 
 interface HeaderProps {
   title?: string;
@@ -33,14 +34,17 @@ export async function Header({ title }: HeaderProps) {
           <h1 className="text-lg font-semibold text-foreground hidden md:block">{title}</h1>
         )}
       </div>
-      <UserMenu
-        user={{
-          id: session.user.id,
-          name: session.user.name ?? null,
-          email: session.user.email ?? "",
-          image: session.user.image ?? null,
-        }}
-      />
+      <div className="flex items-center gap-2">
+        <NotificationBell />
+        <UserMenu
+          user={{
+            id: session.user.id,
+            name: session.user.name ?? null,
+            email: session.user.email ?? "",
+            image: session.user.image ?? null,
+          }}
+        />
+      </div>
     </header>
   );
 }

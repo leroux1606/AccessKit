@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { CreditCard, Key, Palette, ArrowRight } from "lucide-react";
+import { CreditCard, Key, Palette, Bell, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PLAN_NAMES } from "@/lib/plans";
@@ -27,6 +27,12 @@ const settingsSections = [
     icon: Palette,
     title: "White Label",
     description: "Customize branding for client-facing reports and portals.",
+  },
+  {
+    href: "/settings/notifications",
+    icon: Bell,
+    title: "Notifications",
+    description: "Configure email and in-app notification preferences.",
   },
 ];
 

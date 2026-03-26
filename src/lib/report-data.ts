@@ -25,11 +25,20 @@ export async function buildScanReportData(scanId: string): Promise<ScanReportDat
 
   if (!scan || scan.status !== "COMPLETED") return null;
 
+  const whiteLabel = scan.website.organization.whiteLabel as {
+    companyName?: string | null;
+    primaryColor?: string | null;
+    logoUrl?: string | null;
+  } | null;
+
   return {
     websiteName: scan.website.name,
     websiteUrl: scan.website.url,
     organizationName: scan.website.organization.name,
     scanDate: formatDate(scan.completedAt ?? scan.createdAt),
+    whiteLabel: ["AGENCY", "ENTERPRISE"].includes(scan.website.organization.plan)
+      ? whiteLabel
+      : null,
     score: scan.score,
     pagesScanned: scan.pagesScanned,
     totalViolations: scan.totalViolations ?? 0,
