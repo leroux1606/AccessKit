@@ -145,6 +145,7 @@ model Organization {
   reports                  Report[]
   notifications            Notification[]
   notificationPreferences  NotificationPreference[]
+  webhooks                 Webhook[]
 }
 
 // ─── Users & Memberships ──────────────────────────────────────────────────────
@@ -495,4 +496,45 @@ model NotificationPreference {
 
   @@unique([userId, organizationId, type])
   @@index([userId, organizationId])
+}
+
+// ─── Outgoing Webhooks ───────────────────────────────────────────────────────
+
+enum WebhookEvent {
+  SCAN_COMPLETED
+  CRITICAL_ISSUES_FOUND
+  SCORE_DROPPED
+  ISSUE_STATUS_CHANGED
+}
+
+model Webhook {
+  id             String         @id @default(cuid())
+  organizationId String
+  url            String
+  secret         String         // HMAC signing secret
+  events         WebhookEvent[]
+  enabled        Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  deliveries   WebhookDelivery[]
+
+  @@index([organizationId])
+}
+
+model WebhookDelivery {
+  id           String   @id @default(cuid())
+  webhookId    String
+  event        WebhookEvent
+  payload      Json
+  statusCode   Int?
+  response     String?  @db.Text
+  success      Boolean  @default(false)
+  attempts     Int      @default(1)
+  deliveredAt  DateTime @default(now())
+
+  webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  @@index([webhookId, deliveredAt])
 }

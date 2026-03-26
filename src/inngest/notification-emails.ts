@@ -1,6 +1,7 @@
 import { inngest } from "./client";
 import { db } from "@/lib/db";
 import { createNotifications, getEmailRecipients } from "@/lib/notifications";
+import { deliverWebhookEvent } from "@/lib/webhooks";
 
 // ─── Scan Complete ───────────────────────────────────────────────────────────
 
@@ -63,6 +64,19 @@ export const scanCompleteNotification = inngest.createFunction(
           text: `Hi ${r.name ?? "there"},\n\nA scan of ${website.name} (${website.url}) has completed.\n\n${message}\n\nView results: ${baseUrl}${link}\n\n— The AccessKit Team`,
         });
       }
+    });
+
+    // Webhook delivery
+    await step.run("deliver-webhooks", async () => {
+      await deliverWebhookEvent(website.organizationId, "SCAN_COMPLETED", {
+        scanId: scan.id,
+        websiteId: website.id,
+        websiteName: website.name,
+        websiteUrl: website.url,
+        score: scan.score,
+        totalViolations: scan.totalViolations,
+        pagesScanned: scan.pagesScanned,
+      });
     });
 
     return { scanId, notified: true };
@@ -130,6 +144,15 @@ export const criticalIssuesNotification = inngest.createFunction(
           text: `Hi ${r.name ?? "there"},\n\n${message}\n\nWebsite: ${website.name} (${website.url})\n\nCritical issues require immediate remediation to maintain accessibility compliance. View and address them here:\n${baseUrl}${link}\n\n— The AccessKit Team`,
         });
       }
+    });
+
+    await step.run("deliver-webhooks", async () => {
+      await deliverWebhookEvent(website.organizationId, "CRITICAL_ISSUES_FOUND", {
+        scanId: scan.id,
+        websiteId: website.id,
+        websiteName: website.name,
+        criticalCount,
+      });
     });
 
     return { scanId, criticalCount };
@@ -215,6 +238,17 @@ export const scoreDropNotification = inngest.createFunction(
           text: `Hi ${r.name ?? "there"},\n\n${message}\n\nPrevious score: ${previousScore}/100\nCurrent score: ${scan.score}/100\nDrop: -${drop} points\n\nReview: ${baseUrl}${link}\n\n— The AccessKit Team`,
         });
       }
+    });
+
+    await step.run("deliver-webhooks", async () => {
+      await deliverWebhookEvent(website.organizationId, "SCORE_DROPPED", {
+        scanId: scan.id,
+        websiteId: website.id,
+        websiteName: website.name,
+        previousScore,
+        currentScore: scan.score,
+        drop,
+      });
     });
 
     return { scanId, drop };

@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { CreditCard, Key, Palette, Bell, ArrowRight } from "lucide-react";
+import { CreditCard, Key, Palette, Bell, Webhook, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PLAN_NAMES } from "@/lib/plans";
@@ -33,6 +33,12 @@ const settingsSections = [
     icon: Bell,
     title: "Notifications",
     description: "Configure email and in-app notification preferences.",
+  },
+  {
+    href: "/settings/webhooks",
+    icon: Webhook,
+    title: "Webhooks",
+    description: "Send real-time events to external services with HMAC signing.",
   },
 ];
 

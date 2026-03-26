@@ -1,7 +1,8 @@
 import { chromium } from "playwright";
-import type { ScanResult } from "@/types/scan";
+import type { ScanResult, ScanViolation } from "@/types/scan";
 import { crawlWebsite } from "./crawler";
 import { scanPageWithAxe } from "./axe-scanner";
+import { scanPageWithPa11y } from "./pa11y-scanner";
 import { addPageScores, calculateScore } from "./scorer";
 
 export async function runScan(
@@ -27,6 +28,27 @@ export async function runScan(
         batch.map((url) => scanPageWithAxe(browser, url, websiteOrigin, standards)),
       );
       rawPages.push(...results);
+    }
+
+    // 2b. Run pa11y in parallel for additional coverage (best-effort)
+    try {
+      const pa11yResults = await Promise.all(
+        urls.slice(0, Math.min(urls.length, 5)).map((url) => scanPageWithPa11y(url, websiteOrigin)),
+      );
+
+      // Merge pa11y violations into axe results, deduplicating by fingerprint
+      for (const pa11yPage of pa11yResults) {
+        const matchingPage = rawPages.find((p) => p.url === pa11yPage.url);
+        if (!matchingPage) continue;
+
+        const existingFingerprints = new Set(matchingPage.violations.map((v) => v.fingerprint));
+        const newViolations = pa11yPage.violations.filter(
+          (v: ScanViolation) => !existingFingerprints.has(v.fingerprint),
+        );
+        matchingPage.violations.push(...newViolations);
+      }
+    } catch {
+      // pa11y is supplementary — don't fail the scan if it errors
     }
 
     // 3. Add per-page scores

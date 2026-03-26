@@ -29,6 +29,14 @@ export default async function DashboardPage() {
       where: { organizationId: org.id, isCompetitor: false },
       orderBy: { updatedAt: "desc" },
       take: 5,
+      select: {
+        id: true,
+        name: true,
+        url: true,
+        currentScore: true,
+        lastScanAt: true,
+        verified: true,
+      },
     }),
     db.scan.findMany({
       where: {
@@ -37,7 +45,7 @@ export default async function DashboardPage() {
       },
       orderBy: { createdAt: "desc" },
       take: 5,
-      include: { website: true },
+      select: { id: true, score: true, createdAt: true, website: { select: { name: true } } },
     }),
     db.violation.count({
       where: {

@@ -44,6 +44,14 @@ export default async function WebsitePage({ params }: WebsitePageProps) {
       scans: {
         orderBy: { createdAt: "desc" },
         take: 10,
+        select: {
+          id: true,
+          status: true,
+          score: true,
+          pagesScanned: true,
+          totalViolations: true,
+          createdAt: true,
+        },
       },
     },
   });
@@ -57,7 +65,12 @@ export default async function WebsitePage({ params }: WebsitePageProps) {
       where: { websiteId, status: { in: ["OPEN", "IN_PROGRESS"] } },
       orderBy: [{ severity: "asc" }, { firstDetectedAt: "desc" }],
       take: 5,
-      include: { page: true },
+      select: {
+        id: true,
+        severity: true,
+        description: true,
+        cssSelector: true,
+      },
     }),
   ]);
 

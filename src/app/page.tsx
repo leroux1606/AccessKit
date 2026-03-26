@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Globe, BarChart3, Shield, ArrowRight, Sparkles } from "lucide-react";
+import { DemoScan } from "@/components/demo-scan";
 
 export default async function HomePage() {
   const session = await auth();
@@ -28,6 +29,9 @@ export default async function HomePage() {
         <div className="flex items-center gap-3">
           <Button variant="ghost" className="text-muted-foreground hover:text-foreground" asChild>
             <Link href="/pricing">Pricing</Link>
+          </Button>
+          <Button variant="ghost" className="text-muted-foreground hover:text-foreground" asChild>
+            <Link href="/docs">Docs</Link>
           </Button>
           <Button variant="ghost" className="text-muted-foreground hover:text-foreground" asChild>
             <Link href="/login">Sign in</Link>
@@ -66,6 +70,17 @@ export default async function HomePage() {
             </Button>
           </div>
           <p className="text-xs text-muted-foreground mt-4">No credit card required. Cancel anytime.</p>
+        </section>
+
+        {/* Live Demo */}
+        <section className="py-16 px-6 max-w-5xl mx-auto" aria-labelledby="demo-heading">
+          <h2 id="demo-heading" className="text-2xl font-bold text-center mb-3 text-foreground">
+            Try it now — scan any website
+          </h2>
+          <p className="text-center text-muted-foreground mb-8 max-w-md mx-auto text-sm">
+            Enter a URL to get an instant accessibility score and top issues. No signup required.
+          </p>
+          <DemoScan />
         </section>
 
         {/* Features */}

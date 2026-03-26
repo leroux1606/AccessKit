@@ -1,19 +1,23 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === "development";
+
 const securityHeaders = [
   // Content Security Policy — restricts resource loading to trusted origins
   {
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://app.posthog.com",
+      // unsafe-eval only in dev (Next.js HMR needs it); unsafe-inline kept for inline scripts
+      `script-src 'self' ${isDev ? "'unsafe-eval'" : ""} 'unsafe-inline' https://app.posthog.com`,
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https://*.googleusercontent.com https://avatars.githubusercontent.com",
+      "img-src 'self' data: blob: https://*.googleusercontent.com https://avatars.githubusercontent.com",
       "font-src 'self'",
       "connect-src 'self' https://app.posthog.com https://us.i.posthog.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
+      "upgrade-insecure-requests",
     ].join("; "),
   },
   // Prevent clickjacking
