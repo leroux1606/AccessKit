@@ -137,6 +137,26 @@ export const scanWebsiteJob = inngest.createFunction(
             lastScanAt: now,
           },
         });
+
+        // Auto-verify issues that are no longer found in this scan.
+        // Find all open/in-progress violations for this website whose fingerprint
+        // is absent from the current scan's results — they've been fixed.
+        const newFingerprints = new Set(
+          result.pages.flatMap((p) => p.violations.map((v) => v.fingerprint))
+        );
+
+        await tx.violation.updateMany({
+          where: {
+            websiteId,
+            status: { in: ["OPEN", "IN_PROGRESS"] },
+            NOT: { fingerprint: { in: [...newFingerprints] } },
+          },
+          data: {
+            status: "VERIFIED",
+            verifiedAt: now,
+            resolvedAt: now,
+          },
+        });
       });
     });
 

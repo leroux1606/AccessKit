@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { getActiveMembership } from "@/lib/get-active-org";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
 
@@ -10,11 +10,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect("/login");
   }
 
-  // Verify user has at least one organization
-  const membership = await db.membership.findFirst({
-    where: { userId: session.user.id },
-    include: { organization: true },
-  });
+  // Verify user has at least one organization (respects active-org cookie for multi-org users)
+  const membership = await getActiveMembership(session.user.id);
 
   if (!membership) {
     // Edge case: user exists but has no org (shouldn't happen with our createUser event)

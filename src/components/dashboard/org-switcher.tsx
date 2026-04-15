@@ -67,9 +67,15 @@ export function OrgSwitcher({ organizations, currentOrgSlug }: OrgSwitcherProps)
         {organizations.map((org) => (
           <DropdownMenuItem
             key={org.id}
-            onClick={() => {
-              // TODO: implement org switching via cookie/server action
+            onClick={async () => {
               setOpen(false);
+              if (org.id === currentOrg.id) return;
+              await fetch("/api/switch-org", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ orgId: org.id }),
+              });
+              router.refresh();
             }}
             className="flex items-center gap-2 cursor-pointer"
           >

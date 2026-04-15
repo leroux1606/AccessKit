@@ -12,6 +12,7 @@ const PROTECTED_PREFIXES = [
   "/integrations",
   "/reports",
   "/benchmarking",
+  "/onboarding",
 ];
 
 // Simple in-memory rate limiter for public endpoints

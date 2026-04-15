@@ -147,6 +147,7 @@ model Organization {
   notifications            Notification[]
   notificationPreferences  NotificationPreference[]
   webhooks                 Webhook[]
+  invitations              Invitation[]
 }
 
 // ─── Users & Memberships ──────────────────────────────────────────────────────
@@ -168,6 +169,7 @@ model User {
   reports                  Report[]
   notifications            Notification[]
   notificationPreferences  NotificationPreference[]
+  invitationsSent          Invitation[] @relation("InvitationsSent")
 }
 
 model Membership {
@@ -538,4 +540,24 @@ model WebhookDelivery {
   webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
 
   @@index([webhookId, deliveredAt])
+}
+
+// ─── Team Invitations ─────────────────────────────────────────────────────────
+
+model Invitation {
+  id             String   @id @default(cuid())
+  organizationId String
+  email          String
+  role           Role     @default(MEMBER)
+  token          String   @unique @default(cuid())
+  invitedById    String
+  accepted       Boolean  @default(false)
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedBy    User         @relation("InvitationsSent", fields: [invitedById], references: [id])
+
+  @@index([organizationId])
+  @@index([email])
 }
