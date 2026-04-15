@@ -32,7 +32,7 @@ export default async function IntegrationsPage() {
       href: hasCI ? null : "/settings/billing",
       cta: hasCI ? "Coming soon" : "Upgrade to Professional",
       code: hasCI
-        ? `- name: AccessKit scan\n  run: |\n    curl -s -X POST \\\n      -H "Authorization: Bearer ${{ secrets.ACCESSKIT_KEY }}" \\\n      -d '{"websiteId":"YOUR_ID"}' \\\n      https://app.accesskit.io/api/v1/scans`
+        ? '- name: AccessKit scan\n  run: |\n    curl -s -X POST \\\n      -H "Authorization: Bearer ${{ secrets.ACCESSKIT_KEY }}" \\\n      -d \'{"websiteId":"YOUR_ID"}\' \\\n      https://app.accesskit.io/api/v1/scans'
         : null,
     },
     {

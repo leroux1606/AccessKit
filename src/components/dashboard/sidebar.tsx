@@ -122,7 +122,7 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom */}
-      <div className="px-3 py-4 border-t border-border/50">
+      <div className="px-3 pb-6 pt-3 border-t border-border/50">
         <Link
           href="/docs"
           className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground hover:bg-secondary/50 hover:text-foreground transition-all duration-150"

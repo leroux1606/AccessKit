@@ -22,7 +22,12 @@ export default async function DashboardPage() {
   if (!membership) redirect("/login");
 
   const org = membership.organization;
-  const userName = session.user.name?.split(" ")[0] ?? "there";
+  // Derive display name: prefer real name, fall back to email prefix (jan.leroux0 → Jan)
+  const rawName =
+    session.user.name?.split(" ")[0] ??
+    session.user.email?.split("@")[0]?.split(".")[0]?.replace(/\d+/g, "") ??
+    "there";
+  const userName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
 
   const [websites, recentScans, openViolationsCount] = await Promise.all([
     db.website.findMany({
