@@ -103,12 +103,21 @@ export default async function ReportsPage() {
 
       {/* Report list */}
       {reports.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <FileBarChart className="h-10 w-10 text-muted-foreground mb-4 opacity-40" aria-hidden="true" />
-          <h2 className="text-lg font-medium mb-1">No reports yet</h2>
+        <div className="rounded-xl border border-border/50 bg-card/30 p-10 flex flex-col items-center text-center">
+          <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4">
+            <FileBarChart className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
+          </div>
+          <h2 className="text-base font-semibold mb-1">No reports yet</h2>
           <p className="text-sm text-muted-foreground max-w-sm">
-            Generate your first report by selecting a completed scan above.
+            {completedScans.length === 0
+              ? "Run a scan on one of your websites first, then come back to generate a report."
+              : "Select a completed scan above and click Generate PDF to create your first report."}
           </p>
+          {completedScans.length === 0 && (
+            <Button asChild size="sm" className="mt-4">
+              <Link href="/websites">Go to Websites</Link>
+            </Button>
+          )}
         </div>
       ) : (
         <Card>

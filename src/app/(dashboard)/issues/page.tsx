@@ -229,14 +229,21 @@ export default async function IssuesPage({ searchParams }: IssuesPageProps) {
       </div>
 
       {violations.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <AlertTriangle className="h-12 w-12 text-muted-foreground mb-4 opacity-40" aria-hidden="true" />
-          <h2 className="text-lg font-semibold mb-2">No issues found</h2>
-          <p className="text-sm text-muted-foreground">
+        <div className="rounded-xl border border-border/50 bg-card/30 p-12 flex flex-col items-center text-center">
+          <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4">
+            <AlertTriangle className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
+          </div>
+          <h2 className="text-base font-semibold mb-1">No issues found</h2>
+          <p className="text-sm text-muted-foreground max-w-sm">
             {statusFilter || severityFilter || websiteFilter
-              ? "No issues match your filters. Try adjusting the criteria."
+              ? "No issues match your current filters. Try clearing the criteria."
               : "Run a scan on one of your websites to detect accessibility issues."}
           </p>
+          {!statusFilter && !severityFilter && !websiteFilter && (
+            <Button asChild size="sm" className="mt-4">
+              <Link href="/websites">Go to Websites</Link>
+            </Button>
+          )}
         </div>
       ) : (
         <CrossWebsiteTable violations={serializedViolations} />

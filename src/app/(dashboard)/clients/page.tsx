@@ -30,18 +30,33 @@ export default async function ClientsPage() {
             White-label portals for your clients to view their accessibility progress
           </p>
         </div>
-        <Card className="border-orange-500/20 bg-orange-500/10">
-          <CardContent className="p-6 text-center space-y-3">
-            <ExternalLink className="h-8 w-8 mx-auto text-orange-400" aria-hidden="true" />
-            <p className="font-medium">Client portals require Agency plan or higher</p>
-            <p className="text-sm text-muted-foreground">
-              Create branded portals for each client with their own login, score tracking, and issue visibility.
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+          <div className="lg:col-span-3 rounded-xl border border-border/50 bg-card/40 p-8 flex flex-col items-center text-center">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[hsl(262,83%,68%)] to-[hsl(280,80%,55%)] flex items-center justify-center mb-5 shadow-lg shadow-[hsl(262,83%,68%)]/20">
+              <ExternalLink className="h-7 w-7 text-white" aria-hidden="true" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2">Agency plan required</h2>
+            <p className="text-muted-foreground text-sm max-w-xs mb-7 leading-relaxed">
+              Create white-label portals for each client. They log in with their own link and see their score, issues, and progress — branded as you.
             </p>
-            <Button asChild>
+            <Button asChild size="lg" className="w-full sm:w-auto px-8">
               <Link href="/settings/billing">Upgrade to Agency</Link>
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="lg:col-span-2 space-y-3">
+            {[
+              { title: "Branded portals", desc: "Your logo, your colours, your domain — clients never see AccessKit." },
+              { title: "Per-client access", desc: "Each client only sees their own websites. Fully isolated." },
+              { title: "Score & issue tracking", desc: "Clients can see their score trend and open issues in real time." },
+              { title: "Password protection", desc: "Optionally lock portals with a password for extra privacy." },
+            ].map(({ title, desc }) => (
+              <div key={title} className="rounded-lg border border-border/40 bg-card/30 p-4">
+                <p className="font-medium text-sm">{title}</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

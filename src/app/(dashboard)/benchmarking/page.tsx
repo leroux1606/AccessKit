@@ -32,16 +32,33 @@ export default async function BenchmarkingPage() {
             Compare your accessibility scores against competitors
           </p>
         </div>
-        <Card>
-          <CardContent className="p-12 text-center">
-            <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" aria-hidden="true" />
-            <h2 className="text-lg font-semibold mb-2">Agency Plan Required</h2>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Competitive benchmarking lets you scan competitor websites and compare accessibility
-              scores side-by-side. Upgrade to Agency or Enterprise to unlock this feature.
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+          <div className="lg:col-span-3 rounded-xl border border-border/50 bg-card/40 p-8 flex flex-col items-center text-center">
+            <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-5">
+              <Lock className="h-7 w-7 text-muted-foreground" aria-hidden="true" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2">Agency plan required</h2>
+            <p className="text-muted-foreground text-sm max-w-xs mb-7 leading-relaxed">
+              Scan competitor websites and compare accessibility scores side-by-side. A powerful sales tool — "your site scores 72, their top competitor scores 41."
             </p>
-          </CardContent>
-        </Card>
+            <Button asChild size="lg" className="w-full sm:w-auto px-8">
+              <Link href="/settings/billing">Upgrade to Agency</Link>
+            </Button>
+          </div>
+          <div className="lg:col-span-2 space-y-3">
+            {[
+              { title: "Scan competitors", desc: "Add any public website URL and scan it for accessibility issues." },
+              { title: "Side-by-side scores", desc: "See your average score vs. competitors on a single chart." },
+              { title: "Sales ammunition", desc: "Show clients exactly how they compare to their competition." },
+              { title: "Up to 5 competitors", desc: "Track up to 5 competitor websites on the Agency plan." },
+            ].map(({ title, desc }) => (
+              <div key={title} className="rounded-lg border border-border/40 bg-card/30 p-4">
+                <p className="font-medium text-sm">{title}</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

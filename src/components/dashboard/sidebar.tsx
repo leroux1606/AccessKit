@@ -123,16 +123,13 @@ export function Sidebar() {
 
       {/* Bottom */}
       <div className="px-3 py-4 border-t border-border/50">
-        <a
-          href="https://accesskit.app/docs"
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          href="/docs"
           className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground hover:bg-secondary/50 hover:text-foreground transition-all duration-150"
         >
           <BookOpen className="h-4 w-4" aria-hidden="true" />
           Documentation
-          <ExternalLink className="h-3 w-3 ml-auto opacity-40" aria-hidden="true" />
-        </a>
+        </Link>
       </div>
     </aside>
   );
