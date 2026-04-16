@@ -138,12 +138,13 @@ export default async function BillingPage() {
         </CardContent>
       </Card>
 
-      {/* Billing actions (client component for Stripe redirects) */}
+      {/* Billing actions (client component for checkout/portal redirects) */}
       {isAdmin && (
         <BillingActions
           currentPlan={org.plan}
           subscriptionStatus={org.subscriptionStatus}
           hasStripeCustomer={!!org.stripeCustomerId}
+          hasPaystackSubscription={!!org.paystackSubscriptionCode}
           upgradePlans={upgradePlans}
         />
       )}

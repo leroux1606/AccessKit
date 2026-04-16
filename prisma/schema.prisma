@@ -131,8 +131,10 @@ model Organization {
   name                 String
   slug                 String             @unique
   plan                 PlanType           @default(STARTER)
-  stripeCustomerId     String?
-  stripeSubscriptionId String?
+  stripeCustomerId         String?
+  stripeSubscriptionId     String?
+  paystackCustomerCode     String?
+  paystackSubscriptionCode String?
   subscriptionStatus   SubscriptionStatus @default(TRIALING)
   trialEndsAt          DateTime?
   whiteLabel           Json?              // { logo, primaryColor, secondaryColor, companyName, customDomain }

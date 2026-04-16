@@ -1,6 +1,6 @@
 # AccessKit — Progress Log
 
-*Last updated: 15 April 2026*
+*Last updated: 16 April 2026*
 
 ---
 
@@ -45,17 +45,24 @@
 - **Fixed**: Build error in integrations page (template literal with `${{}}`)
 - **Database**: `Invitation` table pushed to Supabase via `prisma db push`
 
+### Session: 16 April 2026
+- **PayStack integration** — added alongside Stripe (not replacing it)
+  - `src/lib/paystack.ts` — full API client (initialize, verify, customer, subscription, webhook sig)
+  - `src/app/api/billing/paystack-checkout/route.ts` — creates customer + initializes transaction with plan code
+  - `src/app/api/billing/paystack-portal/route.ts` — returns subscription self-service management link
+  - `src/app/api/webhooks/paystack/route.ts` — handles all subscription events, maps plan codes to PlanType
+  - Schema: `paystackCustomerCode` + `paystackSubscriptionCode` added to Organization, pushed to Supabase
+  - `billing-actions.tsx` — PayStack checkout/portal buttons added; upgrade flow now uses PayStack
+  - `billing/page.tsx` — passes `hasPaystackSubscription` prop
+
 ---
 
 ## What's Left ⏳
 
 ### BLOCKER — Revenue
-- [ ] **PayStack integration** — Stripe is not available in SA
-  - Build `src/lib/paystack.ts` mirroring ComplianceKit's implementation
-  - Replace Stripe checkout/portal/webhook routes with PayStack equivalents
-  - Create PayStack subscription plans (Starter, Professional, Agency)
-  - Wire up plan activation on payment success
-  - Sign up at paystack.com (two accounts — one per app)
+- [ ] **Sign up at paystack.com** — create account for AccessKit
+- [ ] **Create plans in PayStack dashboard** — Starter/Professional/Agency monthly + annual (6 plans)
+- [ ] **Set PayStack env vars** — `PAYSTACK_SECRET_KEY` + 6 `PAYSTACK_*_PLAN_CODE` vars in `.env`
 
 ### Authentication
 - [ ] **Google OAuth** — `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` not set in `.env`
