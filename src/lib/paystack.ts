@@ -193,6 +193,7 @@ export function verifyWebhookSignature(
   payload: string,
   signature: string
 ): boolean {
+  if (!PAYSTACK_SECRET_KEY) return false;
   const hash = crypto
     .createHmac("sha512", PAYSTACK_SECRET_KEY)
     .update(payload)
