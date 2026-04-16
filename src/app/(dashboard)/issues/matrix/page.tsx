@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getActiveMembership } from "@/lib/get-active-org";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
@@ -44,9 +45,7 @@ export default async function PriorityMatrixPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const membership = await db.membership.findFirst({
-    where: { userId: session.user.id },
-  });
+  const membership = await getActiveMembership(session.user.id);
   if (!membership) redirect("/login");
 
   // Get counts grouped by severity + effort

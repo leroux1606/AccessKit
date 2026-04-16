@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getActiveMembership } from "@/lib/get-active-org";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,10 +16,7 @@ export default async function ReportsPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const membership = await db.membership.findFirst({
-    where: { userId: session.user.id },
-    include: { organization: true },
-  });
+  const membership = await getActiveMembership(session.user.id);
   if (!membership) redirect("/login");
 
   const orgId = membership.organizationId;

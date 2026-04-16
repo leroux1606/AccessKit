@@ -17,6 +17,8 @@ import {
   Gauge,
 } from "lucide-react";
 import { formatRelativeTime, formatDate } from "@/lib/utils";
+import { getPlanLimits } from "@/lib/plans";
+import { generateAiFixSuggestion } from "@/lib/ai";
 import { StatusSelect } from "@/components/issues/status-select";
 import { AssigneeSelect } from "@/components/issues/assignee-select";
 import { CommentThread } from "@/components/issues/comment-thread";
@@ -72,6 +74,25 @@ export default async function IssueDetailPage({ params }: IssueDetailPageProps) 
     },
   });
   if (!violation) notFound();
+
+  // Generate AI fix suggestion lazily on first view (Agency plan only)
+  const limits = getPlanLimits(membership.organization.plan);
+  if (!violation.aiFixSuggestion && limits.hasAiFixes) {
+    const aiSuggestion = await generateAiFixSuggestion({
+      ruleId: violation.ruleId,
+      description: violation.description,
+      htmlElement: violation.htmlElement ?? "",
+      helpText: violation.helpText ?? "",
+      templateFix: violation.fixSuggestion ?? undefined,
+    });
+    if (aiSuggestion) {
+      await db.violation.update({
+        where: { id: violation.id },
+        data: { aiFixSuggestion: aiSuggestion },
+      });
+      violation.aiFixSuggestion = aiSuggestion;
+    }
+  }
 
   // Fetch team members for assignment dropdown
   const memberships = await db.membership.findMany({

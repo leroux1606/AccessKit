@@ -45,6 +45,20 @@
 - **Fixed**: Build error in integrations page (template literal with `${{}}`)
 - **Database**: `Invitation` table pushed to Supabase via `prisma db push`
 
+### Session: 16 April 2026 (continued)
+- **Multi-org migration** — all top-level dashboard pages + server actions now use `getActiveMembership()`
+  - issues, issues/matrix, reports, benchmarking, clients, team, settings/*, websites/new
+  - reports/actions.ts (3 usages), reports/page.tsx migrated
+- **Org rename** — owners/admins can rename their org from the Settings page
+  - `PATCH /api/settings/org` — validates, updates, returns new name
+  - `OrgRenameForm` client component — inline edit with save/cancel/keyboard support
+- **AI fix suggestions** — Claude Haiku generates contextual fix suggestions on first view
+  - `src/lib/ai.ts` — Anthropic client + `generateAiFixSuggestion()` helper
+  - Violation detail page generates and caches AI suggestion on first load (Agency plan only)
+  - `@anthropic-ai/sdk` installed
+- **GDPR data export** — now includes issue assignments (`assignedIssues` field in export JSON)
+- **Data retention** — already exists and registered (`data-retention` Inngest job, weekly Sunday 03:00 UTC)
+
 ### Session: 16 April 2026
 - **PayStack integration** — added alongside Stripe (not replacing it)
   - `src/lib/paystack.ts` — full API client (initialize, verify, customer, subscription, webhook sig)
@@ -76,9 +90,7 @@
   - Change `EMAIL_FROM` from `onboarding@resend.dev` to `noreply@accesskit.app`
 
 ### Features (stubs needing completion)
-- [ ] **AI fix suggestions** — `aiFixSuggestion` field in schema, no Claude API call yet
-  - `src/scanner/fix-generator.ts` has template fixes but no AI call
-  - `ANTHROPIC_API_KEY` is in `.env.example` but needs a real key
+- [ ] **AI fix suggestions** — code complete, needs `ANTHROPIC_API_KEY` set in `.env`
 - [ ] **Screenshot capture** — `screenshotUrl` field in schema, R2 stub in place
   - Needs Cloudflare R2 credentials (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, etc.)
 - [ ] **GitHub Action** — `accesskit/scan-action@v1` mentioned in docs but not built
@@ -86,16 +98,11 @@
   - Add org name field to Settings page
 
 ### Multi-org (partial)
-- [ ] **Individual pages** still use raw `db.membership.findFirst` — progressively migrate
-  to `getActiveMembership()` from `src/lib/get-active-org.ts`
-  - Dashboard ✅ updated
-  - Websites ✅ updated
-  - Integrations ✅ updated
-  - All other pages still use raw findFirst (works for single-org users)
+- [ ] **Website-specific pages** still use raw `db.membership.findFirst`
+  - These check website ownership (not active-org context) — lower priority
+  - Affects: `websites/[websiteId]/**` pages and their actions.ts files
 
 ### GDPR / Compliance gaps
-- [ ] Data export missing `IssueComment` and issue assignments
-- [ ] No data retention cleanup/cron job
 - [ ] Cookie consent not persisted server-side
 
 ### Production / Deployment

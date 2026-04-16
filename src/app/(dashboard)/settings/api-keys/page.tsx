@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getActiveMembership } from "@/lib/get-active-org";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Key } from "lucide-react";
@@ -13,10 +14,7 @@ export default async function ApiKeysPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const membership = await db.membership.findFirst({
-    where: { userId: session.user.id },
-    include: { organization: true },
-  });
+  const membership = await getActiveMembership(session.user.id);
   if (!membership) redirect("/login");
 
   const isAgencyOrHigher = ["AGENCY", "ENTERPRISE"].includes(membership.organization.plan);

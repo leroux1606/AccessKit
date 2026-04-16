@@ -2,6 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getActiveMembership } from "@/lib/get-active-org";
 import { redirect } from "next/navigation";
 import crypto from "crypto";
 
@@ -9,10 +10,7 @@ export async function generateReport(formData: FormData): Promise<void> {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const membership = await db.membership.findFirst({
-    where: { userId: session.user.id },
-    include: { organization: true },
-  });
+  const membership = await getActiveMembership(session.user.id);
   if (!membership) redirect("/login");
 
   const scanId = formData.get("scanId") as string;
@@ -53,9 +51,7 @@ export async function toggleReportSharing(reportId: string) {
   const session = await auth();
   if (!session?.user) return { error: "Not authenticated" };
 
-  const membership = await db.membership.findFirst({
-    where: { userId: session.user.id },
-  });
+  const membership = await getActiveMembership(session.user.id);
   if (!membership) return { error: "No organization found" };
 
   const report = await db.report.findUnique({ where: { id: reportId } });
@@ -81,9 +77,7 @@ export async function deleteReport(reportId: string) {
   const session = await auth();
   if (!session?.user) return { error: "Not authenticated" };
 
-  const membership = await db.membership.findFirst({
-    where: { userId: session.user.id },
-  });
+  const membership = await getActiveMembership(session.user.id);
   if (!membership) return { error: "No organization found" };
 
   const report = await db.report.findUnique({ where: { id: reportId } });

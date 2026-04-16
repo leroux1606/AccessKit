@@ -2,10 +2,12 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getActiveMembership } from "@/lib/get-active-org";
 import { CreditCard, Key, Palette, Bell, Webhook, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PLAN_NAMES } from "@/lib/plans";
+import { OrgRenameForm } from "@/components/dashboard/org-rename-form";
 
 export const metadata = { title: "Settings" };
 
@@ -46,10 +48,7 @@ export default async function SettingsPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const membership = await db.membership.findFirst({
-    where: { userId: session.user.id },
-    include: { organization: true },
-  });
+  const membership = await getActiveMembership(session.user.id);
   if (!membership) redirect("/login");
 
   const org = membership.organization;
@@ -63,17 +62,20 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      {/* Org info */}
+      {/* Org info + rename */}
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Organization</p>
-              <p className="font-semibold text-lg">{org.name}</p>
               <p className="text-xs text-muted-foreground">/{org.slug}</p>
             </div>
             <Badge variant="default">{PLAN_NAMES[org.plan]}</Badge>
           </div>
+          <OrgRenameForm
+            currentName={org.name}
+            canEdit={membership.role === "OWNER" || membership.role === "ADMIN"}
+          />
         </CardContent>
       </Card>
 

@@ -15,7 +15,7 @@ export async function GET() {
 
   const userId = session.user.id;
 
-  const [user, memberships, accounts, comments] = await Promise.all([
+  const [user, memberships, accounts, comments, assignedViolations] = await Promise.all([
     db.user.findUnique({
       where: { id: userId },
       select: {
@@ -69,6 +69,18 @@ export async function GET() {
         violationFingerprint: true,
       },
     }),
+    db.violation.findMany({
+      where: { assignedToId: userId },
+      select: {
+        id: true,
+        ruleId: true,
+        description: true,
+        severity: true,
+        status: true,
+        firstDetectedAt: true,
+        website: { select: { name: true, url: true } },
+      },
+    }),
   ]);
 
   const payload = {
@@ -81,6 +93,15 @@ export async function GET() {
       organization: m.organization,
     })),
     issueComments: comments,
+    assignedIssues: assignedViolations.map((v) => ({
+      id: v.id,
+      ruleId: v.ruleId,
+      description: v.description,
+      severity: v.severity,
+      status: v.status,
+      firstDetectedAt: v.firstDetectedAt,
+      website: v.website,
+    })),
   };
 
   return new NextResponse(JSON.stringify(payload, null, 2), {

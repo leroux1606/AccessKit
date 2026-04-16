@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getActiveMembership } from "@/lib/get-active-org";
 import { WebhookManager } from "@/components/dashboard/webhook-manager";
 
 export const metadata = { title: "Webhooks" };
@@ -9,10 +10,7 @@ export default async function WebhooksSettingsPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const membership = await db.membership.findFirst({
-    where: { userId: session.user.id },
-    select: { organizationId: true },
-  });
+  const membership = await getActiveMembership(session.user.id);
   if (!membership) redirect("/login");
 
   const webhooks = await db.webhook.findMany({

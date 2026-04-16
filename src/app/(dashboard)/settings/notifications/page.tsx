@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getActiveMembership } from "@/lib/get-active-org";
 import { NotificationType } from "@prisma/client";
 import { NotificationPreferencesForm } from "@/components/dashboard/notification-preferences-form";
 
@@ -18,10 +19,7 @@ export default async function NotificationPreferencesPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const membership = await db.membership.findFirst({
-    where: { userId: session.user.id },
-    select: { organizationId: true },
-  });
+  const membership = await getActiveMembership(session.user.id);
   if (!membership) redirect("/login");
 
   const prefs = await db.notificationPreference.findMany({

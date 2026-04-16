@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getActiveMembership } from "@/lib/get-active-org";
 import { AlertTriangle, Grid3X3 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,9 +19,7 @@ export default async function IssuesPage({ searchParams }: IssuesPageProps) {
   if (!session?.user) redirect("/login");
   const filters = await searchParams;
 
-  const membership = await db.membership.findFirst({
-    where: { userId: session.user.id },
-  });
+  const membership = await getActiveMembership(session.user.id);
   if (!membership) redirect("/login");
 
   const statusFilter = filters.status as string | undefined;
