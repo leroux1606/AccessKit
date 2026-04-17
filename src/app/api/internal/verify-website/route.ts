@@ -87,6 +87,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, method: website.verificationMethod });
   }
 
+  // Dev-mode bypass: skip real verification checks in local development
+  if (process.env.NODE_ENV === "development") {
+    await db.website.update({
+      where: { id: websiteId },
+      data: { verified: true, verificationMethod: "META_TAG" },
+    });
+    return NextResponse.json({ success: true, method: "META_TAG" });
+  }
+
   // SSRF guard: confirm website URL is a public address (includes DNS rebinding check)
   try {
     await assertSafeFetchUrl(website.url);

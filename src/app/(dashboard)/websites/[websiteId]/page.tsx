@@ -112,7 +112,9 @@ export default async function WebsitePage({ params }: WebsitePageProps) {
                 Verified
               </Badge>
             ) : (
-              <Badge variant="warning">Unverified</Badge>
+              <Link href={`/websites/${websiteId}/settings`}>
+                <Badge variant="warning" className="cursor-pointer hover:opacity-80">Unverified</Badge>
+              </Link>
             )}
           </div>
           <a

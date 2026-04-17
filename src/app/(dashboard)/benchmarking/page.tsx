@@ -6,6 +6,8 @@ import { getPlanLimits } from "@/lib/plans";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Lock, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { CompetitorManager } from "@/components/dashboard/competitor-manager";
 import { ComparisonChart } from "@/components/dashboard/comparison-chart";
 

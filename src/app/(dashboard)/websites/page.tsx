@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { Globe, Plus, Scan, ShieldCheck, AlertTriangle } from "lucide-react";
+import { Globe, Plus, ShieldCheck, AlertTriangle } from "lucide-react";
+import { ScanButton } from "@/components/dashboard/scan-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -123,18 +124,24 @@ export default async function WebsitesPage() {
                         Verified
                       </Badge>
                     ) : (
-                      <Badge variant="warning" className="text-[10px]">Unverified</Badge>
+                      <Link href={`/websites/${website.id}/settings`}>
+                        <Badge variant="warning" className="text-[10px] cursor-pointer hover:opacity-80">Unverified</Badge>
+                      </Link>
                     )}
                     <span className="text-xs text-muted-foreground">
                       {formatRelativeTime(website.lastScanAt)}
                     </span>
                   </div>
-                  <Button size="sm" variant="outline" asChild>
-                    <Link href={`/websites/${website.id}`}>
-                      <Scan className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
-                      Open
-                    </Link>
-                  </Button>
+                  <div className="flex gap-2">
+                    <ScanButton
+                      websiteId={website.id}
+                      disabled={!website.verified}
+                      disabledReason={!website.verified ? "Verify website first" : undefined}
+                    />
+                    <Button size="sm" variant="outline" asChild>
+                      <Link href={`/websites/${website.id}`}>Open</Link>
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

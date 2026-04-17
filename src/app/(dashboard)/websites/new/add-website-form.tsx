@@ -78,9 +78,9 @@ export function AddWebsiteForm({ organizationId }: AddWebsiteFormProps) {
           <input
             id="url"
             name="url"
-            type="url"
+            type="text"
             required
-            placeholder="https://example.com"
+            placeholder="example.com"
             className={cn(
               "w-full pl-9 pr-3 py-2 rounded-md border border-input bg-background text-sm",
               "placeholder:text-muted-foreground",
@@ -89,10 +89,11 @@ export function AddWebsiteForm({ organizationId }: AddWebsiteFormProps) {
             )}
             disabled={isPending}
             autoComplete="url"
+            inputMode="url"
           />
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          Enter the full URL including https://
+          Enter a domain — e.g. <span className="font-mono">example.com</span> or <span className="font-mono">https://example.com</span>
         </p>
       </div>
 

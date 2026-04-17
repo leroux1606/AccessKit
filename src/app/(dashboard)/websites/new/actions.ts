@@ -34,20 +34,43 @@ export async function addWebsite(
     return { error: "Not authorized" };
   }
 
-  // Normalize URL
+  // Normalize URL — handle all common user input formats:
+  // "example.com", "www.example.com", "https://example.com", "https://https://example.com"
   let normalizedUrl = input.url.trim();
+  // Strip any duplicate protocols (e.g. https://https://)
+  normalizedUrl = normalizedUrl.replace(/^(https?:\/\/)+/, (m) =>
+    m.includes("https://") ? "https://" : "http://"
+  );
+  // Add https:// if no protocol present
   if (!normalizedUrl.startsWith("http://") && !normalizedUrl.startsWith("https://")) {
     normalizedUrl = `https://${normalizedUrl}`;
   }
+  // Validate it's a real URL with a hostname, and strip www. prefix
+  try {
+    const parsed = new URL(normalizedUrl);
+    if (!parsed.hostname.includes(".")) {
+      return { error: "Please enter a valid website address, e.g. example.com or https://example.com" };
+    }
+    // Normalise www.example.com → example.com so duplicates are caught
+    if (parsed.hostname.startsWith("www.")) {
+      parsed.hostname = parsed.hostname.slice(4);
+      normalizedUrl = parsed.toString().replace(/\/$/, "");
+    }
+  } catch {
+    return { error: "Please enter a valid website address, e.g. example.com or https://example.com" };
+  }
 
   // Validate URL and block private/internal addresses (SSRF protection)
-  try {
-    await assertSafeFetchUrl(normalizedUrl);
-  } catch (err) {
-    if (err instanceof SsrfError) {
-      return { error: "URLs pointing to private or internal addresses are not allowed." };
+  // Dev bypass: skip SSRF check in local development so any URL can be tested
+  if (process.env.NODE_ENV !== "development") {
+    try {
+      await assertSafeFetchUrl(normalizedUrl);
+    } catch (err) {
+      if (err instanceof SsrfError) {
+        return { error: "URLs pointing to private or internal addresses are not allowed." };
+      }
+      return { error: "Invalid URL. Please enter a valid website address." };
     }
-    return { error: "Invalid URL. Please enter a valid website address." };
   }
 
   // Remove trailing slash for consistency

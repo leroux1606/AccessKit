@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileBarChart, Link2, Plus } from "lucide-react";
+import Link from "next/link";
 import { formatDate, scoreToColor } from "@/lib/utils";
 import { generateReport } from "./actions";
 import { ReportActions } from "./report-actions";
