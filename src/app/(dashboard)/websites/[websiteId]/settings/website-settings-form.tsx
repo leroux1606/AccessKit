@@ -24,11 +24,30 @@ const STANDARDS_OPTIONS = [
   { value: "EN_301_549", label: "EN 301 549", description: "EU accessibility act" },
 ] as const;
 
+const HOURS = Array.from({ length: 24 }, (_, i) => {
+  const label = i === 0 ? "12:00 AM" : i < 12 ? `${i}:00 AM` : i === 12 ? "12:00 PM" : `${i - 12}:00 PM`;
+  return { value: i, label };
+});
+
+const DAYS_OF_WEEK = [
+  { value: 0, label: "Sunday" }, { value: 1, label: "Monday" },
+  { value: 2, label: "Tuesday" }, { value: 3, label: "Wednesday" },
+  { value: 4, label: "Thursday" }, { value: 5, label: "Friday" },
+  { value: 6, label: "Saturday" },
+];
+
+const DAYS_OF_MONTH = Array.from({ length: 28 }, (_, i) => ({
+  value: i + 1,
+  label: `${i + 1}${[,"st","nd","rd"][((i+1)%100>>3^1)&&(i+1)%10<4?(i+1)%10:0]||"th"}`,
+}));
+
 interface WebsiteSettingsFormProps {
   websiteId: string;
   currentName: string;
   currentFrequency: ScanFrequency;
   currentStandards: string[];
+  currentScheduledHour: number;
+  currentScheduledDay: number | null;
   orgPlan: PlanType;
   canManage: boolean;
 }
@@ -38,6 +57,8 @@ export function WebsiteSettingsForm({
   currentName,
   currentFrequency,
   currentStandards,
+  currentScheduledHour,
+  currentScheduledDay,
   orgPlan,
   canManage,
 }: WebsiteSettingsFormProps) {
@@ -45,6 +66,8 @@ export function WebsiteSettingsForm({
   const [name, setName] = useState(currentName);
   const [frequency, setFrequency] = useState<ScanFrequency>(currentFrequency);
   const [standards, setStandards] = useState<string[]>(currentStandards);
+  const [scheduledHour, setScheduledHour] = useState(currentScheduledHour);
+  const [scheduledDay, setScheduledDay] = useState<number>(currentScheduledDay ?? 1);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -67,7 +90,11 @@ export function WebsiteSettingsForm({
     }
 
     startTransition(async () => {
-      const result = await updateWebsiteSettings({ websiteId, name, frequency, standards });
+      const result = await updateWebsiteSettings({
+        websiteId, name, frequency, standards,
+        scheduledHour,
+        scheduledDay: frequency === "MANUAL" ? null : scheduledDay,
+      });
       if (result.error) {
         setError(result.error);
       } else {
@@ -152,6 +179,55 @@ export function WebsiteSettingsForm({
             );
           })}
         </div>
+
+        {/* Day / time pickers — shown when a recurring frequency is selected */}
+        {frequency !== "MANUAL" && (
+          <div className="mt-3 flex flex-wrap gap-3 pl-1">
+            {frequency === "WEEKLY" && (
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Run on</label>
+                <select
+                  value={scheduledDay}
+                  onChange={(e) => setScheduledDay(Number(e.target.value))}
+                  disabled={isPending}
+                  className="px-3 py-1.5 rounded-md border border-input bg-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {DAYS_OF_WEEK.map((d) => (
+                    <option key={d.value} value={d.value}>{d.label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {frequency === "MONTHLY" && (
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Run on day</label>
+                <select
+                  value={scheduledDay}
+                  onChange={(e) => setScheduledDay(Number(e.target.value))}
+                  disabled={isPending}
+                  className="px-3 py-1.5 rounded-md border border-input bg-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {DAYS_OF_MONTH.map((d) => (
+                    <option key={d.value} value={d.value}>{d.label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">At (UTC)</label>
+              <select
+                value={scheduledHour}
+                onChange={(e) => setScheduledHour(Number(e.target.value))}
+                disabled={isPending}
+                className="px-3 py-1.5 rounded-md border border-input bg-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {HOURS.map((h) => (
+                  <option key={h.value} value={h.value}>{h.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
       </fieldset>
 
       {/* Standards */}

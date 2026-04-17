@@ -388,13 +388,15 @@ model IssueComment {
 // ─── Scan Schedules ───────────────────────────────────────────────────────────
 
 model ScanSchedule {
-  id        String        @id @default(cuid())
-  websiteId String        @unique
-  frequency ScanFrequency @default(WEEKLY)
-  nextRunAt DateTime
-  lastRunAt DateTime?
-  enabled   Boolean       @default(true)
-  createdAt DateTime      @default(now())
+  id            String        @id @default(cuid())
+  websiteId     String        @unique
+  frequency     ScanFrequency @default(WEEKLY)
+  scheduledHour Int           @default(9)   // 0-23 UTC
+  scheduledDay  Int?                         // WEEKLY: 0-6 (0=Sun); MONTHLY: 1-28
+  nextRunAt     DateTime
+  lastRunAt     DateTime?
+  enabled       Boolean       @default(true)
+  createdAt     DateTime      @default(now())
 
   website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
 }

@@ -11,6 +11,34 @@ interface UpdateWebsiteSettingsInput {
   name: string;
   frequency: ScanFrequency;
   standards: string[];
+  scheduledHour?: number;
+  scheduledDay?: number | null;
+}
+
+function calculateNextRunAt(
+  frequency: ScanFrequency,
+  scheduledHour: number,
+  scheduledDay: number | null,
+): Date {
+  const now = new Date();
+  const next = new Date(now);
+  next.setUTCMinutes(0, 0, 0);
+  next.setUTCHours(scheduledHour);
+
+  if (frequency === "DAILY") {
+    if (next <= now) next.setUTCDate(next.getUTCDate() + 1);
+  } else if (frequency === "WEEKLY") {
+    const target = scheduledDay ?? 1;
+    let diff = (target - next.getUTCDay() + 7) % 7;
+    if (diff === 0 && next <= now) diff = 7;
+    next.setUTCDate(next.getUTCDate() + diff);
+  } else if (frequency === "MONTHLY") {
+    const target = scheduledDay ?? 1;
+    next.setUTCDate(target);
+    if (next <= now) next.setUTCMonth(next.getUTCMonth() + 1);
+  }
+
+  return next;
 }
 
 export async function updateWebsiteSettings(
@@ -50,6 +78,9 @@ export async function updateWebsiteSettings(
     return { error: "Select at least one standard." };
   }
 
+  const hour = input.scheduledHour ?? 9;
+  const day = input.scheduledDay ?? null;
+
   await db.website.update({
     where: { id: input.websiteId },
     data: {
@@ -58,6 +89,30 @@ export async function updateWebsiteSettings(
       standards: validStandards,
     },
   });
+
+  if (input.frequency === "MANUAL") {
+    await db.scanSchedule.deleteMany({ where: { websiteId: input.websiteId } });
+  } else {
+    const nextRunAt = calculateNextRunAt(input.frequency, hour, day);
+    await db.scanSchedule.upsert({
+      where: { websiteId: input.websiteId },
+      create: {
+        websiteId: input.websiteId,
+        frequency: input.frequency,
+        scheduledHour: hour,
+        scheduledDay: day,
+        nextRunAt,
+        enabled: true,
+      },
+      update: {
+        frequency: input.frequency,
+        scheduledHour: hour,
+        scheduledDay: day,
+        nextRunAt,
+        enabled: true,
+      },
+    });
+  }
 
   revalidatePath(`/websites/${input.websiteId}`);
   revalidatePath(`/websites/${input.websiteId}/settings`);

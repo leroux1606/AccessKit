@@ -9,6 +9,7 @@ import { ArrowLeft, ShieldCheck, AlertTriangle } from "lucide-react";
 import { VerificationPanel } from "./verification-panel";
 import { WebsiteSettingsForm } from "./website-settings-form";
 import { DeleteWebsiteButton } from "./delete-website-button";
+import { ScanButton } from "@/components/dashboard/scan-button";
 
 export const metadata = { title: "Website Settings" };
 
@@ -29,6 +30,7 @@ export default async function WebsiteSettingsPage({ params }: SettingsPageProps)
 
   const website = await db.website.findUnique({
     where: { id: websiteId, organizationId: membership.organizationId },
+    include: { scanSchedule: true },
   });
 
   if (!website) notFound();
@@ -46,9 +48,16 @@ export default async function WebsiteSettingsPage({ params }: SettingsPageProps)
         </Button>
       </div>
 
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Website settings</h1>
-        <p className="text-sm text-muted-foreground">{website.name}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Website settings</h1>
+          <p className="text-sm text-muted-foreground">{website.name}</p>
+        </div>
+        <ScanButton
+          websiteId={websiteId}
+          disabled={!website.verified}
+          disabledReason={!website.verified ? "Verify website ownership before scanning" : undefined}
+        />
       </div>
 
       {/* Verification */}
@@ -97,6 +106,8 @@ export default async function WebsiteSettingsPage({ params }: SettingsPageProps)
             currentName={website.name}
             currentFrequency={website.scanFrequency}
             currentStandards={website.standards as string[]}
+            currentScheduledHour={website.scanSchedule?.scheduledHour ?? 9}
+            currentScheduledDay={website.scanSchedule?.scheduledDay ?? null}
             orgPlan={membership.organization.plan}
             canManage={canManage}
           />

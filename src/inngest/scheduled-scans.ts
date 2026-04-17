@@ -3,12 +3,31 @@ import { db } from "@/lib/db";
 import { getPlanLimits } from "@/lib/plans";
 import type { ScanEventData } from "@/types/scan";
 
-const FREQUENCY_MS = {
-  DAILY: 24 * 60 * 60 * 1000,
-  WEEKLY: 7 * 24 * 60 * 60 * 1000,
-  MONTHLY: 30 * 24 * 60 * 60 * 1000,
-  MANUAL: 0,
-} as const;
+function calculateNextRunAt(
+  frequency: string,
+  scheduledHour: number,
+  scheduledDay: number | null,
+): Date {
+  const now = new Date();
+  const next = new Date(now);
+  next.setUTCMinutes(0, 0, 0);
+  next.setUTCHours(scheduledHour);
+
+  if (frequency === "DAILY") {
+    next.setUTCDate(next.getUTCDate() + 1);
+  } else if (frequency === "WEEKLY") {
+    const target = scheduledDay ?? 1;
+    let diff = (target - next.getUTCDay() + 7) % 7;
+    if (diff === 0) diff = 7;
+    next.setUTCDate(next.getUTCDate() + diff);
+  } else if (frequency === "MONTHLY") {
+    const target = scheduledDay ?? 1;
+    next.setUTCDate(target);
+    next.setUTCMonth(next.getUTCMonth() + 1);
+  }
+
+  return next;
+}
 
 /**
  * Inngest cron job — runs every 15 minutes, checks for websites
@@ -81,14 +100,16 @@ export const scheduledScansJob = inngest.createFunction(
 
         await inngest.send({ name: "scan/website.requested", data: eventData });
 
-        // Update schedule: set lastRunAt + calculate nextRunAt
-        const freq = schedule.frequency as keyof typeof FREQUENCY_MS;
-        const intervalMs = FREQUENCY_MS[freq] ?? FREQUENCY_MS.WEEKLY;
+        // Update schedule: set lastRunAt + calculate next occurrence from stored day/hour
         await db.scanSchedule.update({
           where: { id: schedule.id },
           data: {
             lastRunAt: new Date(),
-            nextRunAt: new Date(Date.now() + intervalMs),
+            nextRunAt: calculateNextRunAt(
+              schedule.frequency,
+              schedule.scheduledHour,
+              schedule.scheduledDay,
+            ),
           },
         });
 
