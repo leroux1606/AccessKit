@@ -1,11 +1,10 @@
 import { readFileSync } from "fs";
-import { createRequire } from "module";
+import { resolve } from "path";
 import type { Browser } from "playwright";
 import { AxeBuilder } from "@axe-core/playwright";
 
 // Use the browser-compatible bundle — the CJS build fails in page context
-const _require = createRequire(import.meta.url);
-const axeSource = readFileSync(_require.resolve("axe-core/axe.min.js"), "utf8");
+const axeSource = readFileSync(resolve(process.cwd(), "node_modules/axe-core/axe.min.js"), "utf8");
 import type { ScanViolation, PageScanResult } from "@/types/scan";
 import {
   mapAxeImpactToSeverity,
