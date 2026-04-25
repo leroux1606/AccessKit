@@ -7,7 +7,7 @@ import { inngest } from "@/inngest/client";
 import { getPlanLimits } from "@/lib/plans";
 import type { ScanEventData } from "@/types/scan";
 
-export async function triggerScan(websiteId: string): Promise<void> {
+export async function triggerScan(websiteId: string): Promise<{ redirectTo: string }> {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
@@ -27,7 +27,7 @@ export async function triggerScan(websiteId: string): Promise<void> {
     where: { websiteId, status: { in: ["QUEUED", "RUNNING"] } },
   });
   if (runningScan) {
-    redirect(`/websites/${websiteId}/scans/${runningScan.id}`);
+    return { redirectTo: `/websites/${websiteId}/scans/${runningScan.id}` };
   }
 
   // DB-backed rate limit: max 10 scans per website per 24 hours
@@ -70,5 +70,5 @@ export async function triggerScan(websiteId: string): Promise<void> {
     data: eventData,
   });
 
-  redirect(`/websites/${websiteId}/scans/${scan.id}`);
+  return { redirectTo: `/websites/${websiteId}/scans/${scan.id}` };
 }
